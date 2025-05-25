@@ -26,6 +26,7 @@ qt_add_resources(${CMAKE_PROJECT_NAME} "configuration"
     FILES
         qtquickcontrols2.conf)
 
+# add_subdirectory(TicTacTueCore)
 include(qds)
 
 if (BUILD_QDS_COMPONENTS)
@@ -42,3 +43,4 @@ install(TARGETS ${CMAKE_PROJECT_NAME}
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
   RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
+

@@ -10,10 +10,14 @@ import QtQuick
 import QtQuick.Controls
 import TicTacTue
 import QtQuick.Layouts
+import TicTacTueCore
 
 Rectangle {
     id: root
-    property bool xturn: true
+    property string imageUrlPlayer : "images/ava1.png"
+    property string imageUrlOpponent : "images/ava2.png"
+    property int xWin : 0
+    property int oWin : 0
     width: Constants.width
     height: Constants.height
     gradient: Gradient {
@@ -27,6 +31,21 @@ Rectangle {
             color: "#1e301e"
         }
         orientation: Gradient.Vertical
+    }
+
+    TicTacTueCore {
+        id: core;
+        onMsgChanged: console.log(msg)
+        onGameWon: (side) => {
+            rematchButton.visible = true;
+            winStatus.text = side + " WON!!!";
+            winStatus.visible = true;
+            if (side === "X") {
+                xWin++;
+            } else if (side === "O") {
+                oWin++;
+            }
+        }
     }
 
     Rectangle {
@@ -82,6 +101,7 @@ Rectangle {
                 anchors.topMargin: 0
                 anchors.bottomMargin: 0
                 width: 80
+                avatar.source: imageUrlPlayer
             }
 
             PlayerStats {
@@ -94,6 +114,7 @@ Rectangle {
                 anchors.rightMargin: 0
                 anchors.topMargin: 0
                 anchors.bottomMargin: 0
+                avatar.source: imageUrlOpponent
             }
 
             Text {
@@ -192,18 +213,17 @@ Rectangle {
                     Connections {
                         target: rec.mouseArea
                         function onClicked() {
-
                             // Eventual C++ logic here
-                            if (rec.state === "empty") {
-                                if (xturn) {
+                            if (core.boxPressed(index)) {
+                                if (!core.xTurn) {
                                     rec.state = "x"
                                 } else {
                                     rec.state = "o"
                                 }
-                                xturn = !xturn
                             }
                         }
                     }
+
                 }
             }
         }
@@ -222,15 +242,64 @@ Rectangle {
         Connections {
             target: quit
             function onClicked() {
-
-                // C++ board clearing and reset logic here
-
                 for (var i = 0; i < 9; i++) {
                     console.log(boxGenerator.itemAt(i).state)
                     boxGenerator.itemAt(i).state = "empty"
                 }
                 root.visible = false
             }
+        }
+    }
+
+    PlayerTimeScore {
+        id: playerGameStats
+        anchors.verticalCenter: game.verticalCenter
+        anchors.right: game.left
+        anchors.rightMargin: 32
+        playerScore.text: xWin
+        playerImage.source: imageUrlPlayer
+    }
+
+    Text {
+        id: winStatus
+        x: 203
+        y: 8
+        width: 600
+        height: 44
+        visible: false
+        color: "#ffffff"
+        text: qsTr("WON!!!")
+        font.pixelSize: 40
+        horizontalAlignment: Text.AlignHCenter
+        font.bold: true
+    }
+
+    PlayerTimeScore {
+        id: opponentGameStats
+        anchors.verticalCenter: game.verticalCenter
+        anchors.left: game.right
+        anchors.leftMargin: 32
+        playerScore.text: oWin
+        playerImage.source: imageUrlOpponent
+    }
+
+    GeneralButton {
+        id: rematchButton
+        x: 863
+        visible: false
+        text: "REMATCH"
+        anchors.right: infoBoard.left
+        anchors.top: parent.top
+        anchors.rightMargin: 16
+        anchors.topMargin: 13
+        onClicked: {
+            for (var i = 0; i < 9; i++) {
+                console.log(boxGenerator.itemAt(i).state)
+                boxGenerator.itemAt(i).state = "empty"
+            }
+            core.reset();
+            visible = false;
+            winStatus.visible = false;
         }
     }
 }

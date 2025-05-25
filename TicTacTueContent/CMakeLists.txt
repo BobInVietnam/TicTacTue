@@ -9,15 +9,18 @@ qt6_add_qml_module(TicTacTueContent
     VERSION 1.0
     RESOURCE_PREFIX "/qt/qml"
     QML_FILES
+        "App.qml"
+        "PlayerTimeScore.qml"
+        "GameScreen.qml"
+        "PlayerStats.ui.qml"
         "GeneralButton.ui.qml"
         "XORect.ui.qml"
-        "App.qml"
-        "PlayerStats.ui.qml"
         "MainScreen.qml"
-        "GameScreen.qml"
     RESOURCES
-        "images/o.svg"
         "images/x.svg"
+        "images/o.svg"
+        "images/ava2.png"
+        "images/ava1.png"
 )
 
 

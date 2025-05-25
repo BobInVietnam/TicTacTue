@@ -5,6 +5,7 @@ Rectangle {
     property int playerLose: 0
     property int playerWin: 0
     property string playerName: "This is a string"
+    property alias avatar: avatar;
     color: "#00ffffff"
     border.color: "#00000000"
 

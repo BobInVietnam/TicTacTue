@@ -44,6 +44,10 @@ Project {
         directory: "Generated"
     }
 
+    QmlFiles {
+        directory: "TicTacTueCore_mock"
+    }
+
     JavaScriptFiles {
         directory: "TicTacTue"
     }

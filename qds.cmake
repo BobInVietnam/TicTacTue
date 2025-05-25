@@ -3,9 +3,11 @@
 
 add_subdirectory(TicTacTueContent)
 add_subdirectory(TicTacTue)
+add_subdirectory(TicTacTueCore)
 add_subdirectory(App)
 add_subdirectory(Dependencies)
 
 target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE
     TicTacTueContentplugin
-    TicTacTueplugin)
+    TicTacTueplugin
+    TicTacTueCoreplugin)
