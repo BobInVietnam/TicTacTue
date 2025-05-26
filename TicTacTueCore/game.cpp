@@ -1,40 +1,67 @@
 #include "game.h"
 
-GameState Game::getGs() const
+CountdownTimer *Game::getXTimer() const
 {
-    return gs;
+    return xTimer;
+}
+
+CountdownTimer *Game::getOTimer() const
+{
+    return oTimer;
+}
+
+void Game::xTimerTimesup()
+{
+    setGs(GameState::OWON);
+}
+
+void Game::oTimerTimesup()
+{
+    setGs(GameState::XWON);
 }
 
 Game::Game() {
     xTurn = true;
-    gs = GameState::BEGIN;
-    xTimer.setSingleShot(true);
-    oTimer.setSingleShot(true);
-};
+    setGs(GameState::BEGIN);
+    xTimer = new CountdownTimer(this);
+    oTimer = new CountdownTimer(this);
+    xTimer->setInitialTime(30000);
+    oTimer->setInitialTime(30000);
+    QObject::connect(xTimer, &CountdownTimer::timerExpired, this, &Game::xTimerTimesup);
+    QObject::connect(oTimer, &CountdownTimer::timerExpired, this, &Game::oTimerTimesup);
+    qDebug() << "Game created";
+}
 
 void Game::switchPlayer() {
     xTurn = !xTurn;
 }
 
-void Game::start() {
-    gs = GameState::STARTED;
-}
-
 void Game::reset()
 {
-    gs = GameState::BEGIN;
+    setGs(GameState::BEGIN);
     board.clear();
     xTurn = true;
+    xTimer->reset();
+    oTimer->reset();
 }
 
 bool Game::move(int x, int y)
 {
+    if (gs() == GameState::BEGIN) {
+        setGs(GameState::STARTED);
+    } else if (gs() != GameState::STARTED) {
+        return false;
+    }
     if (!board.placeMark(x, y, xTurn)) {
         std::cout << "Invalid move! Try again.\n";
         return false;
     }
-    if (gs != GameState::STARTED) {
-        start();
+    if (xTurn) {
+        xTimer->start();
+        oTimer->pause();
+    } else {
+        xTimer->pause();
+        oTimer->start();
     }
     board.display();
     checkWin();
@@ -47,14 +74,39 @@ void Game::checkWin()
     char winner = board.checkWinner();
     if (winner != ' ') {
         std::cout << "🎉 " << winner << " wins!\n";
-        gs = xTurn ? GameState::XWON : GameState::OWON;
+        setGs(xTurn ? GameState::XWON : GameState::OWON);
+        xTimer->pause();
+        oTimer->pause();
         return;
     } else if (board.isFull()) {
-        gs = GameState::DRAW;
+        setGs(GameState::DRAW);
     }
 }
 
 bool Game::getXTurn() const
 {
     return xTurn;
+}
+
+QString Game::getxTimerString() const
+{
+    return xTimer->currentTimeText();
+}
+
+QString Game::getoTimerString() const
+{
+    return oTimer->currentTimeText();
+}
+
+GameState Game::gs() const
+{
+    return m_gs;
+}
+
+void Game::setGs(GameState newGs)
+{
+    if (m_gs == newGs)
+        return;
+    m_gs = newGs;
+    emit gsChanged();
 }
