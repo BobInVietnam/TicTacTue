@@ -46,6 +46,8 @@ Rectangle {
                 oWin++;
             }
         }
+        onXTimerStringChanged: xGameStats.playerTime.text = core.xTimerString
+        onOTimerStringChanged: oGameStats.playerTime.text = core.oTimerString
     }
 
     Rectangle {
@@ -214,7 +216,7 @@ Rectangle {
                         target: rec.mouseArea
                         function onClicked() {
                             // Eventual C++ logic here
-                            if (core.boxPressed(index)) {
+                            if (core.getBoxPressed(index)) {
                                 if (!core.xTurn) {
                                     rec.state = "x"
                                 } else {
@@ -252,7 +254,7 @@ Rectangle {
     }
 
     PlayerTimeScore {
-        id: playerGameStats
+        id: xGameStats
         anchors.verticalCenter: game.verticalCenter
         anchors.right: game.left
         anchors.rightMargin: 32
@@ -275,7 +277,7 @@ Rectangle {
     }
 
     PlayerTimeScore {
-        id: opponentGameStats
+        id: oGameStats
         anchors.verticalCenter: game.verticalCenter
         anchors.left: game.right
         anchors.leftMargin: 32
