@@ -61,3 +61,32 @@ char Board::checkWinner()
     return ' '; // No winner
 }
 
+std::string Board::getSequence() const
+{
+    std::string s = "";
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            s.push_back(grid[i][j]);
+        }
+    }
+    return s;
+}
+
+void Board::setSequence(QString seq)
+{
+    if (seq.length() != 9) {
+        throw new std::out_of_range("Board sequence not in correct length");
+    }
+    for (auto c : seq) {
+        if (c != 'x' || c != 'o' || c != ' ') {
+            throw new std::logic_error("Invalid character in board sequence");
+        }
+    }
+    int index = 0;
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            grid[i][j] = seq.at(index).toLatin1();
+            index++;
+        }
+    }
+}

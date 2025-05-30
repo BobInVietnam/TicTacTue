@@ -321,20 +321,17 @@ Rectangle {
                         function onClicked() {
                             // Eventual C++ logic here
                             if (core.getBoxPressed(index)) {
-                                await
-                                if (!core.xTurn) {
-                                    rec.state = "x"
-                                } else {
-                                    rec.state = "o"
-                                }
+                                loadBoardState(core.)
                             }
                         }
                     }
 
                 }
             }
-            function loadBoardState(QString ) {
-
+            function loadBoardState(seq: string) {
+                for (var i = 0; i < 9; i++) {
+                    boxGenerator.itemAt(i).state = seq.at(i) === ' ' ? "empty" : seq.at(i)
+                }
             }
         }
     }

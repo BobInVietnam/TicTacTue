@@ -38,6 +38,9 @@ public:
     GameState gs() const;
     void setGs(GameState newGs);
 
+    QString getBoardSeq();
+    void setBoardSeq(QString seq);
+
     CountdownTimer *getXTimer() const;
     CountdownTimer *getOTimer() const;
 

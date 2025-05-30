@@ -2,6 +2,7 @@
 #define BOARD_H
 
 #include <iostream>
+#include <QString>
 #include <vector>
 
 class Board {
@@ -14,6 +15,8 @@ public:
     bool placeMark(int row, int col, bool xMove);
     bool isFull();
     char checkWinner();
+    std::string getSequence();
+    void setSequence(QString seq);
 };
 
 #endif // BOARD_H

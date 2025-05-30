@@ -99,3 +99,13 @@ void TicTacTueCore::setOTimerString(const QString &newOTimerString)
     m_oTimerString = newOTimerString;
     emit oTimerStringChanged();
 }
+
+QString TicTacTueCore::getBoardSeq() const
+{
+    return currentGame.getBoardSeq();
+}
+
+void TicTacTueCore::setBoardSeq(QString seq)
+{
+    currentGame.setBoardSeq(seq);
+}

@@ -110,3 +110,13 @@ void Game::setGs(GameState newGs)
     m_gs = newGs;
     emit gsChanged();
 }
+
+QString Game::getBoardSeq()
+{
+    return QString::fromStdString(board.getSequence());
+}
+
+void Game::setBoardSeq(QString seq)
+{
+    board.setSequence(seq);
+}

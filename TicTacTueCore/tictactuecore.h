@@ -28,6 +28,8 @@ public:
     QString oTimerString() const;
     void setOTimerString(const QString &newOTimerString);
 
+    QString getBoardSeq() const;
+
 public slots:
     bool getBoxPressed(int index);
     void checkGameState();
