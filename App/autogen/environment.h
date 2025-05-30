@@ -10,7 +10,6 @@
 
 Q_IMPORT_QML_PLUGIN(TicTacTueContentPlugin)
 Q_IMPORT_QML_PLUGIN(TicTacTuePlugin)
-Q_IMPORT_QML_PLUGIN(TicTacTueCorePlugin)
 
 const char mainQmlFile[] = "qrc:/qt/qml/TicTacTueContent/App.qml";
 

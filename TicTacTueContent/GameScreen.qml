@@ -1,21 +1,22 @@
 
-
-/*
-This is a UI file (.ui.qml) that is intended to be edited in Qt Design Studio only.
-It is supposed to be strictly declarative and only uses a subset of QML. If you edit
-this file manually, you might introduce QML code that is not supported by Qt Design Studio.
-Check out https://doc.qt.io/qtcreator/creator-quick-ui-forms.html for details on .ui.qml files.
-*/
 import QtQuick
 import QtQuick.Controls
 import TicTacTue
 import QtQuick.Layouts
 import TicTacTueCore
+import QtQuick.Studio.DesignEffects
 
 Rectangle {
     id: root
+    enum Gamemode {
+        AI,
+        HUMAN_OFFLINE,
+        HUMAN_ONLINE
+    }
+
     property string imageUrlPlayer : "images/ava1.png"
     property string imageUrlOpponent : "images/ava2.png"
+    property int gamemode : GameScreen.Gamemode.AI
     property int xWin : 0
     property int oWin : 0
     width: Constants.width
@@ -35,17 +36,17 @@ Rectangle {
 
     TicTacTueCore {
         id: core;
-        onMsgChanged: console.log(msg)
+        onMsgChanged: () => console.log(msg)
         onGameWon: (side) => {
-            rematchButton.visible = true;
-            winStatus.text = side + " WON!!!";
-            winStatus.visible = true;
-            if (side === "X") {
-                xWin++;
-            } else if (side === "O") {
-                oWin++;
-            }
-        }
+                       rematchButton.visible = true;
+                       winStatus.text = side + " WON!!!";
+                       winStatus.visible = true;
+                       if (side === "X") {
+                           xWin++;
+                       } else if (side === "O") {
+                           oWin++;
+                       }
+                   }
         onXTimerStringChanged: xGameStats.playerTime.text = core.xTimerString
         onOTimerStringChanged: oGameStats.playerTime.text = core.oTimerString
     }
@@ -128,6 +129,7 @@ Rectangle {
                 anchors.top: parent.top
                 anchors.topMargin: 114
                 font.pixelSize: 14
+                font.bold: true
                 anchors.horizontalCenter: parent.horizontalCenter
             }
 
@@ -140,6 +142,7 @@ Rectangle {
                 anchors.top: win.bottom
                 anchors.topMargin: 10
                 font.pixelSize: 14
+                font.bold: true
                 anchors.horizontalCenter: parent.horizontalCenter
             }
         }
@@ -164,10 +167,110 @@ Rectangle {
             color: "#4a000000"
             anchors.top: history.bottom
             anchors.bottom: parent.bottom
-            anchors.topMargin: 45
+            anchors.topMargin: 51
             anchors.bottomMargin: 32
             anchors.horizontalCenterOffset: -1
             anchors.horizontalCenter: parent.horizontalCenter
+            visible: gamemode == GameScreen.Gamemode.HUMAN_ONLINE
+
+            Text {
+                id: chatTitle
+                x: 85
+                color: "#ffffff"
+                text: qsTr("Chat")
+                anchors.bottom: parent.top
+                anchors.bottomMargin: 8
+                font.pixelSize: 14
+                anchors.horizontalCenterOffset: 0
+                anchors.horizontalCenter: chat.horizontalCenter
+                font.bold: true
+            }
+
+            Rectangle {
+                id: chatInput
+                x: 1
+                y: 159
+                width: 200
+                height: 28
+                color: "#00ffffff"
+                border.color: "#ffffff"
+                border.width: 2
+                anchors.bottom: parent.bottom
+                anchors.bottomMargin: 2
+
+                TextInput {
+                    id: textInput
+                    color: "#ffffff"
+                    text: qsTr("Enter message....")
+                    anchors.fill: parent
+                    anchors.leftMargin: 8
+                    anchors.rightMargin: 8
+                    anchors.topMargin: 0
+                    anchors.bottomMargin: 0
+                    font.pixelSize: 12
+                    verticalAlignment: Text.AlignVCenter
+                    selectionColor: "#beffffff"
+                    selectedTextColor: "#1e1e1e"
+                    onAccepted: () => {}
+                }
+            }
+
+            Rectangle {
+                id: chatoutput
+                x: 1
+                y: 0
+                width: 200
+                height: 161
+                color: "#00ffffff"
+                border.color: "#ffffff"
+                border.width: 2
+                anchors.bottom: parent.bottom
+                anchors.bottomMargin: 28
+
+
+                ScrollView {
+                    id: rectangle1
+                    anchors.fill: parent
+                    anchors.leftMargin: 8
+                    anchors.rightMargin: 8
+                    anchors.topMargin: 8
+                    anchors.bottomMargin: 8
+
+                    Repeater {
+                        id: repeater
+                        x: 0
+                        y: 0
+                        model:  ListModel {
+                            id: myListModel
+                            function createListElement() {
+                                return { "name": "Placeholder", "msg": textInput.text }
+                            }
+                            function clearList() {
+                                myListModel.clear()
+                            }
+                        }
+
+                        Rectangle {
+                            id: chatItem
+                            width: parent.width
+                            visible: true
+                            color: "#5e5e5e"
+
+                            Text {
+                                id: chatMsg
+                                color: "#ffffff"
+                                text: name + ": " + msg
+                                wrapMode: Text.WordWrap
+                                fontSizeMode: Text.VerticalFit
+                                font.pointSize: 10
+
+                            }
+                        }
+                    }
+                }
+
+            }
+
         }
     }
 
@@ -207,6 +310,7 @@ Rectangle {
             Repeater {
                 id: boxGenerator
                 model: 9
+
                 XORect {
                     id: rec
                     width: (grid.width - 32) / 3
@@ -217,6 +321,7 @@ Rectangle {
                         function onClicked() {
                             // Eventual C++ logic here
                             if (core.getBoxPressed(index)) {
+                                await
                                 if (!core.xTurn) {
                                     rec.state = "x"
                                 } else {
@@ -228,11 +333,65 @@ Rectangle {
 
                 }
             }
+            function loadBoardState(QString ) {
+
+            }
+        }
+    }
+
+    Rectangle {
+        id: connectingSign
+        x: 243
+        y: 215
+        width: 521
+        height: 279
+        visible: gamemode == GameScreen.Gamemode.HUMAN_ONLINE
+        color: "#293b29"
+        radius: 8
+        border.color: "#ffffff"
+        border.width: 8
+
+        DesignEffect {
+            effects: [
+                DesignDropShadow {
+                    color: "#89000000"
+                    offsetY: 8
+                    offsetX: 8
+                    blur: 2
+                }
+            ]
+        }
+
+        Text {
+            id: text1
+            x: 142
+            y: 58
+            color: "#ffffff"
+            text: qsTr("Connecting to server")
+            font.pixelSize: 24
+            font.bold: true
+        }
+
+        Text {
+            id: text2
+            x: 142
+            y: 100
+            color: "#ffffff"
+            text: qsTr("Waiting for opponent")
+            font.pixelSize: 24
+            font.bold: true
+        }
+
+        GeneralButton {
+            id: generalButton
+            x: 183
+            y: 185
+            text: "Cancel & Quit"
         }
     }
 
     GeneralButton {
-        id: quit
+        id: quitGame
         width: 67
         height: 50
         text: "Quit"
@@ -241,8 +400,9 @@ Rectangle {
         anchors.leftMargin: 17
         anchors.topMargin: 13
 
+        signal exitGame()
         Connections {
-            target: quit
+            target: quitGame
             function onClicked() {
                 for (var i = 0; i < 9; i++) {
                     console.log(boxGenerator.itemAt(i).state)
@@ -304,4 +464,39 @@ Rectangle {
             winStatus.visible = false;
         }
     }
+
+    Rectangle {
+        id: internet
+        y: 664
+        width: 64
+        height: 48
+        visible: gamemode == GameScreen.Gamemode.HUMAN_ONLINE
+        color: "#00ffffff"
+        border.color: "#00ffffff"
+        anchors.left: parent.left
+        anchors.bottom: parent.bottom
+        anchors.leftMargin: 16
+        anchors.bottomMargin: 8
+
+        Image {
+            id: wifiProblemSvgrepoCom
+            x: 8
+            y: 6
+            source: "images/wifi-problem-svgrepo-com.svg"
+            sourceSize.height: 36
+            sourceSize.width: 36
+            fillMode: Image.PreserveAspectFit
+        }
+
+        Text {
+            id: ping
+            x: 6
+            y: 15
+            color: "#ffffff"
+            text: qsTr("Ping: ")
+            font.pixelSize: 16
+            font.bold: true
+        }
+    }
+
 }

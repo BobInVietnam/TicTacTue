@@ -44,10 +44,6 @@ Project {
         directory: "Generated"
     }
 
-    QmlFiles {
-        directory: "TicTacTueCore_mock"
-    }
-
     JavaScriptFiles {
         directory: "TicTacTue"
     }
@@ -74,6 +70,11 @@ Project {
     Files {
         directory: "."
         filter: "qmldir"
+    }
+
+    Files {
+        directory: "."
+        filter: "*.qml"
     }
 
     Files {
@@ -109,4 +110,7 @@ Project {
         directory: "Generated"
         filter: "*.qad"
     }
+
+    mockImports: [ "TicTacTueCore_mock" ]
+
 }
