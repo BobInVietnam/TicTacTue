@@ -1,17 +1,23 @@
 #ifndef PLAYER_H
 #define PLAYER_H
 
-#include <string>
+#include <QString>
 
 class Player {
 private:
-    std::string name;
+    QString name;
     char symbol;
+    int wonScore;
+    int lostScore;
 public:
-    Player(std::string n, char s);
+    Player(QString n, char s);
 
-    std::string getName();
+    QString getName();
     char getSymbol();
+    int getWonScore() const;
+    void setWonScore(int newWonScore);
+    int getLostScore() const;
+    void setLostScore(int newLostScore);
 };
 
 #endif // PLAYER_H

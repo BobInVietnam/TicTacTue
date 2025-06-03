@@ -8,17 +8,14 @@ import QtQuick.Studio.DesignEffects
 
 Rectangle {
     id: root
-    enum Gamemode {
-        AI,
-        HUMAN_OFFLINE,
-        HUMAN_ONLINE
-    }
 
     property string imageUrlPlayer : "images/ava1.png"
     property string imageUrlOpponent : "images/ava2.png"
-    property int gamemode : GameScreen.Gamemode.AI
+    property int gamemode : 0
     property int xWin : 0
     property int oWin : 0
+    property bool blocking : false;
+    property bool online : false;
     width: Constants.width
     height: Constants.height
     gradient: Gradient {
@@ -33,6 +30,8 @@ Rectangle {
         }
         orientation: Gradient.Vertical
     }
+
+    onGamemodeChanged: core.gamemode = gamemode
 
     TicTacTueCore {
         id: core;
@@ -49,6 +48,16 @@ Rectangle {
                    }
         onXTimerStringChanged: xGameStats.playerTime.text = core.xTimerString
         onOTimerStringChanged: oGameStats.playerTime.text = core.oTimerString
+    }
+
+    function toggleServer() {
+        if (!online) {
+            core.connectToServer();
+            online = true;
+        } else {
+            core.disconnectFromServer();
+            online = false;
+        }
     }
 
     Rectangle {
@@ -171,7 +180,7 @@ Rectangle {
             anchors.bottomMargin: 32
             anchors.horizontalCenterOffset: -1
             anchors.horizontalCenter: parent.horizontalCenter
-            visible: gamemode == GameScreen.Gamemode.HUMAN_ONLINE
+            visible: gamemode == 2
 
             Text {
                 id: chatTitle
@@ -320,17 +329,19 @@ Rectangle {
                         target: rec.mouseArea
                         function onClicked() {
                             // Eventual C++ logic here
-                            if (core.getBoxPressed(index)) {
-                                loadBoardState(core.)
+                            if (!blocking) {
+                                if (core.getBoxPressed(index)) {
+                                    blocking = true;
+                                }
                             }
                         }
                     }
 
                 }
             }
-            function loadBoardState(seq: string) {
-                for (var i = 0; i < 9; i++) {
-                    boxGenerator.itemAt(i).state = seq.at(i) === ' ' ? "empty" : seq.at(i)
+                function loadBoardState(seq: string) {
+                    for (var i = 0; i < 9; i++) {
+                        boxGenerator.itemAt(i).state = seq.at(i) === ' ' ? "empty" : seq.at(i)
                 }
             }
         }
@@ -342,7 +353,7 @@ Rectangle {
         y: 215
         width: 521
         height: 279
-        visible: gamemode == GameScreen.Gamemode.HUMAN_ONLINE
+        visible: gamemode == 2
         color: "#293b29"
         radius: 8
         border.color: "#ffffff"
@@ -467,7 +478,7 @@ Rectangle {
         y: 664
         width: 64
         height: 48
-        visible: gamemode == GameScreen.Gamemode.HUMAN_ONLINE
+        visible: gamemode == 2
         color: "#00ffffff"
         border.color: "#00ffffff"
         anchors.left: parent.left

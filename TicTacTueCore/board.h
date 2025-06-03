@@ -15,7 +15,7 @@ public:
     bool placeMark(int row, int col, bool xMove);
     bool isFull();
     char checkWinner();
-    std::string getSequence();
+    std::string getSequence() const;
     void setSequence(QString seq);
 };
 

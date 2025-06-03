@@ -17,19 +17,11 @@ enum GameState {
 class Game : public QObject {
     Q_OBJECT
     Q_PROPERTY(GameState gs READ gs WRITE setGs NOTIFY gsChanged FINAL)
-private:
-    Board board;
-    bool xTurn;
-    GameState m_gs;
-    CountdownTimer * xTimer;
-    CountdownTimer * oTimer;
-
 public:
     Game();
+    ~Game();
     void reset();
     bool move(int x, int y);
-    void switchPlayer();
-    void checkWin();
 
     bool getXTurn() const;
     QString getxTimerString() const;
@@ -38,7 +30,7 @@ public:
     GameState gs() const;
     void setGs(GameState newGs);
 
-    QString getBoardSeq();
+    QString getBoardSeq() const;
     void setBoardSeq(QString seq);
 
     CountdownTimer *getXTimer() const;
@@ -51,6 +43,16 @@ signals:
     void gsChanged();
     void xTimerChanged();
     void oTimerChanged();
+private:
+    Board board;
+    bool isX;
+    bool xTurn;
+    GameState m_gs;
+    CountdownTimer * xTimer;
+    CountdownTimer * oTimer;
+
+    void switchPlayer();
+    void checkWin();
 };
 
 #endif // GAME_H

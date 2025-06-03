@@ -32,6 +32,13 @@ Game::Game() {
     qDebug() << "Game created";
 }
 
+Game::~Game()
+{
+    delete xTimer;
+    delete oTimer;
+    qDebug() << "Game destroyed";
+}
+
 void Game::switchPlayer() {
     xTurn = !xTurn;
 }
@@ -111,7 +118,7 @@ void Game::setGs(GameState newGs)
     emit gsChanged();
 }
 
-QString Game::getBoardSeq()
+QString Game::getBoardSeq() const
 {
     return QString::fromStdString(board.getSequence());
 }

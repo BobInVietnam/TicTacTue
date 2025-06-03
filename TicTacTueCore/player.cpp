@@ -1,9 +1,29 @@
-#include "../../test-site/tic-tac-toe/TicTacToeCore/player.h"
+#include "player.h"
 
-Player::Player(std::string n, char s) : name(n), symbol(s) {}
+Player::Player(QString n, char s) : name(n), symbol(s) {}
+
+int Player::getWonScore() const
+{
+    return wonScore;
+}
+
+void Player::setWonScore(int newWonScore)
+{
+    wonScore = newWonScore;
+}
+
+int Player::getLostScore() const
+{
+    return lostScore;
+}
+
+void Player::setLostScore(int newLostScore)
+{
+    lostScore = newLostScore;
+}
 
 char Player::getSymbol() { return symbol; }
 
-std::string Player::getName() { return name; }
+QString Player::getName() { return name; }
 
 

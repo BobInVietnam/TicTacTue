@@ -1,16 +1,49 @@
 #include "tictactuecore.h"
 
 TicTacTueCore::TicTacTueCore() {
-    QObject::connect(currentGame.getXTimer(), &CountdownTimer::currentTimeChanged, this, &TicTacTueCore::getxTimerSignal);
-    QObject::connect(currentGame.getOTimer(), &CountdownTimer::currentTimeChanged, this, &TicTacTueCore::getoTimerSignal);
-    QObject::connect(&currentGame, &Game::gsChanged, this, &TicTacTueCore::checkGameState);
+    gameClient = GameClient::getInstance();
+    currentGame = new Game();
+    QObject::connect(currentGame->getXTimer(), &CountdownTimer::currentTimeChanged, this, &TicTacTueCore::getxTimerSignal);
+    QObject::connect(currentGame->getOTimer(), &CountdownTimer::currentTimeChanged, this, &TicTacTueCore::getoTimerSignal);
+    QObject::connect(currentGame, &Game::gsChanged, this, &TicTacTueCore::checkGameState);
+    QObject::connect(this, &TicTacTueCore::gamemodeChanged, &TicTacTueCore::startGame);
     qDebug() << "Core generated. Ready to go.";
+}
+
+void TicTacTueCore::initGame()
+{
+    switch (gamemode()) {
+    case 0:
+        delete currentGame;
+        currentGame = new Game();
+        break;
+    case 1:
+        delete currentGame;
+        currentGame = new Game();
+        break;
+    case 2:
+        delete currentGame;
+        currentGame = new Game();
+        break;
+    default:
+        qDebug() << "WTF Gamemode?";
+    }
+}
+
+void TicTacTueCore::connectToServer()
+{
+    gameClient->connectToServer();
+}
+
+void TicTacTueCore::disconnectFromServer()
+{
+    gameClient->disconnect();
 }
 
 bool TicTacTueCore::getBoxPressed(int index)
 {
     setMsg("Block number " + std::to_string(index) + " pressed");
-    if (currentGame.move(index / 3, index % 3)) {
+    if (currentGame->move(index / 3, index % 3)) {
         setXTurn();
         return true;
     }
@@ -19,7 +52,7 @@ bool TicTacTueCore::getBoxPressed(int index)
 
 void TicTacTueCore::checkGameState()
 {
-    switch (currentGame.gs()) {
+    switch (currentGame->gs()) {
     case XWON:
         emit gameWon("X");
         break;
@@ -35,17 +68,23 @@ void TicTacTueCore::checkGameState()
 
 void TicTacTueCore::reset()
 {
-    currentGame.reset();
+    currentGame->reset();
 }
 
 void TicTacTueCore::getxTimerSignal()
 {
-    setXTimerString(currentGame.getxTimerString());
+    setXTimerString(currentGame->getxTimerString());
 }
 
 void TicTacTueCore::getoTimerSignal()
 {
-    setOTimerString(currentGame.getoTimerString());
+    setOTimerString(currentGame->getoTimerString());
+}
+
+void TicTacTueCore::startGame()
+{
+    initGame();
+    qDebug() << "Current game mode: " << gamemode();
 }
 
 std::string TicTacTueCore::msg() const
@@ -68,8 +107,8 @@ bool TicTacTueCore::xTurn() const
 
 void TicTacTueCore::setXTurn()
 {
-    if (m_xTurn != currentGame.getXTurn()) {
-        m_xTurn = currentGame.getXTurn();
+    if (m_xTurn != currentGame->getXTurn()) {
+        m_xTurn = currentGame->getXTurn();
         emit turnChanged();
     }
 }
@@ -102,10 +141,62 @@ void TicTacTueCore::setOTimerString(const QString &newOTimerString)
 
 QString TicTacTueCore::getBoardSeq() const
 {
-    return currentGame.getBoardSeq();
+    return currentGame->getBoardSeq();
 }
 
 void TicTacTueCore::setBoardSeq(QString seq)
 {
-    currentGame.setBoardSeq(seq);
+    currentGame->setBoardSeq(seq);
+}
+
+PlayerInfo *TicTacTueCore::xInfo() const
+{
+    return m_xInfo;
+}
+
+void TicTacTueCore::setXInfo(PlayerInfo *newXInfo)
+{
+    if (m_xInfo == newXInfo)
+        return;
+    m_xInfo = newXInfo;
+    emit xInfoChanged();
+}
+
+PlayerInfo *TicTacTueCore::oInfo() const
+{
+    return m_oInfo;
+}
+
+void TicTacTueCore::setOInfo(PlayerInfo *newOInfo)
+{
+    if (m_oInfo == newOInfo)
+        return;
+    m_oInfo = newOInfo;
+    emit oInfoChanged();
+}
+
+int TicTacTueCore::gamemode() const
+{
+    return m_gamemode;
+}
+
+void TicTacTueCore::setGamemode(int newGamemode)
+{
+    if (m_gamemode == newGamemode)
+        return;
+    m_gamemode = newGamemode;
+    emit gamemodeChanged();
+}
+
+int TicTacTueCore::ping() const
+{
+    return m_ping;
+}
+
+void TicTacTueCore::setPing(int newPing)
+{
+    if (m_ping == newPing)
+        return;
+    m_ping = newPing;
+    emit pingChanged();
 }
