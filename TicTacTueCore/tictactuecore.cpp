@@ -1,11 +1,12 @@
 #include "tictactuecore.h"
 
+#include <aigame.h>
+#include <onlinegame.h>
+
 TicTacTueCore::TicTacTueCore() {
+    setGamemode(-1);
     gameClient = GameClient::getInstance();
-    currentGame = new Game();
-    QObject::connect(currentGame->getXTimer(), &CountdownTimer::currentTimeChanged, this, &TicTacTueCore::getxTimerSignal);
-    QObject::connect(currentGame->getOTimer(), &CountdownTimer::currentTimeChanged, this, &TicTacTueCore::getoTimerSignal);
-    QObject::connect(currentGame, &Game::gsChanged, this, &TicTacTueCore::checkGameState);
+    currentGame = nullptr;
     QObject::connect(this, &TicTacTueCore::gamemodeChanged, &TicTacTueCore::startGame);
     qDebug() << "Core generated. Ready to go.";
 }
@@ -15,15 +16,27 @@ void TicTacTueCore::initGame()
     switch (gamemode()) {
     case 0:
         delete currentGame;
-        currentGame = new Game();
+        currentGame = new AIGame();
+        QObject::connect(currentGame->getXTimer(), &CountdownTimer::currentTimeChanged, this, &TicTacTueCore::getxTimerSignal);
+        QObject::connect(currentGame->getOTimer(), &CountdownTimer::currentTimeChanged, this, &TicTacTueCore::getoTimerSignal);
+        QObject::connect(currentGame, &Game::gsChanged, this, &TicTacTueCore::checkGameState);
+        QObject::connect(currentGame, &Game::boardChanged, this, &TicTacTueCore::changeBoard);
         break;
     case 1:
         delete currentGame;
-        currentGame = new Game();
+        currentGame = new OfflineGame();
+        QObject::connect(currentGame->getXTimer(), &CountdownTimer::currentTimeChanged, this, &TicTacTueCore::getxTimerSignal);
+        QObject::connect(currentGame->getOTimer(), &CountdownTimer::currentTimeChanged, this, &TicTacTueCore::getoTimerSignal);
+        QObject::connect(currentGame, &Game::boardChanged, this, &TicTacTueCore::changeBoard);
+        QObject::connect(currentGame, &Game::gsChanged, this, &TicTacTueCore::checkGameState);
         break;
     case 2:
         delete currentGame;
-        currentGame = new Game();
+        currentGame = new OnlineGame();
+        QObject::connect(currentGame->getXTimer(), &CountdownTimer::currentTimeChanged, this, &TicTacTueCore::getxTimerSignal);
+        QObject::connect(currentGame->getOTimer(), &CountdownTimer::currentTimeChanged, this, &TicTacTueCore::getoTimerSignal);
+        QObject::connect(currentGame, &Game::boardChanged, this, &TicTacTueCore::changeBoard);
+        QObject::connect(currentGame, &Game::gsChanged, this, &TicTacTueCore::checkGameState);
         break;
     default:
         qDebug() << "WTF Gamemode?";
@@ -87,6 +100,11 @@ void TicTacTueCore::startGame()
     qDebug() << "Current game mode: " << gamemode();
 }
 
+void TicTacTueCore::changeBoard()
+{
+    emit boardChanged();
+}
+
 std::string TicTacTueCore::msg() const
 {
     return m_msg;
@@ -139,7 +157,7 @@ void TicTacTueCore::setOTimerString(const QString &newOTimerString)
     emit oTimerStringChanged();
 }
 
-QString TicTacTueCore::getBoardSeq() const
+QString TicTacTueCore::getBoardSeq()
 {
     return currentGame->getBoardSeq();
 }

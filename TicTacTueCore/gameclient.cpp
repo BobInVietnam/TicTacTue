@@ -82,6 +82,6 @@ void GameClient::errorOccurred(QAbstractSocket::SocketError e)
 
 void GameClient::receiveMessage()
 {
-    socket.readAll();
-
+    QByteArray data = socket.readAll();
+    emit messageReceived(data);
 }

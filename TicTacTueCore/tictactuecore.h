@@ -6,6 +6,7 @@
 #include <QQmlEngine>
 #include <player.h>
 #include <gameclient.h>
+#include <offlinegame.h>
 
 struct PlayerInfo {
     int won;
@@ -32,14 +33,7 @@ class TicTacTueCore : public QObject
     Q_PROPERTY(int gamemode READ gamemode WRITE setGamemode NOTIFY gamemodeChanged)
     Q_PROPERTY(int ping READ ping WRITE setPing NOTIFY pingChanged FINAL)
     QML_ELEMENT;
-    // QML_SINGLETON;
 public:
-    // enum Gamemode {
-    //     AI,
-    //     HUMAN_OFFLINE,
-    //     HUMAN_ONLINE
-    // };
-    // Q_ENUM(Gamemode)
 
     TicTacTueCore();
     void initGame();
@@ -58,7 +52,7 @@ public:
     QString oTimerString() const;
     void setOTimerString(const QString &newOTimerString);
 
-    QString getBoardSeq() const;
+    Q_INVOKABLE QString getBoardSeq();
     void setBoardSeq(QString seq);
     PlayerInfo *xInfo() const;
     void setXInfo(PlayerInfo *newXInfo);
@@ -72,6 +66,7 @@ public:
     int ping() const;
     void setPing(int newPing);
 
+
 public slots:
     bool getBoxPressed(int index);
     void checkGameState();
@@ -79,20 +74,19 @@ public slots:
     void getxTimerSignal();
     void getoTimerSignal();
     void startGame();
+    void changeBoard();
+
 signals:
     void gameWon(const QString& side);
     void msgChanged();
     void turnChanged();
-
     void xTimerStringChanged();
     void oTimerStringChanged();
     void xInfoChanged();
-
     void oInfoChanged();
-
     void gamemodeChanged();
-
     void pingChanged();
+    void boardChanged();
 
 private:
     Game * currentGame;

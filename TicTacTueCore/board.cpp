@@ -77,8 +77,9 @@ void Board::setSequence(QString seq)
     if (seq.length() != 9) {
         throw new std::out_of_range("Board sequence not in correct length");
     }
-    for (auto c : seq) {
-        if (c != 'x' || c != 'o' || c != ' ') {
+    for (auto ch : seq) {
+        char c = ch.toLatin1();
+        if (c != 'x' && c != 'o' && c != ' ') {
             throw new std::logic_error("Invalid character in board sequence");
         }
     }

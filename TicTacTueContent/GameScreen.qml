@@ -45,9 +45,13 @@ Rectangle {
                        } else if (side === "O") {
                            oWin++;
                        }
-                   }
-        onXTimerStringChanged: xGameStats.playerTime.text = core.xTimerString
-        onOTimerStringChanged: oGameStats.playerTime.text = core.oTimerString
+                    }
+        onXTimerStringChanged: () => { xGameStats.playerTime.text = core.xTimerString }
+        onOTimerStringChanged: () => { oGameStats.playerTime.text = core.oTimerString }
+        onBoardChanged: () => {
+                            loadBoardState(core.getBoardSeq())
+                            blocking = false;
+                        }
     }
 
     function toggleServer() {
@@ -330,20 +334,20 @@ Rectangle {
                         function onClicked() {
                             // Eventual C++ logic here
                             if (!blocking) {
-                                if (core.getBoxPressed(index)) {
-                                    blocking = true;
-                                }
+                                blocking = true;
+                                core.getBoxPressed(index)
                             }
                         }
                     }
 
                 }
             }
-                function loadBoardState(seq: string) {
-                    for (var i = 0; i < 9; i++) {
-                        boxGenerator.itemAt(i).state = seq.at(i) === ' ' ? "empty" : seq.at(i)
-                }
-            }
+        }
+    }
+
+    function loadBoardState(seq: string) {
+        for (var i = 0; i < 9; i++) {
+            boxGenerator.itemAt(i).state = (seq.charAt(i) === ' ' ? "empty" : seq.charAt(i))
         }
     }
 
@@ -353,7 +357,7 @@ Rectangle {
         y: 215
         width: 521
         height: 279
-        visible: gamemode == 2
+        visible: gamemode == 2 && !online
         color: "#293b29"
         radius: 8
         border.color: "#ffffff"
@@ -395,6 +399,10 @@ Rectangle {
             x: 183
             y: 185
             text: "Cancel & Quit"
+            onClicked: {
+                blocking = false;
+                root.visible = false;
+            }
         }
     }
 
@@ -416,6 +424,7 @@ Rectangle {
                     console.log(boxGenerator.itemAt(i).state)
                     boxGenerator.itemAt(i).state = "empty"
                 }
+                blocking = false;
                 root.visible = false
             }
         }

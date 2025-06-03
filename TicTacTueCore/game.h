@@ -20,8 +20,8 @@ class Game : public QObject {
 public:
     Game();
     ~Game();
-    void reset();
-    bool move(int x, int y);
+    virtual void reset();
+    virtual bool move(int x, int y);
 
     bool getXTurn() const;
     QString getxTimerString() const;
@@ -43,9 +43,11 @@ signals:
     void gsChanged();
     void xTimerChanged();
     void oTimerChanged();
-private:
+    void boardChanged();
+    void msgReceived(QString);
+protected:
     Board board;
-    bool isX;
+    bool isYourTurn;
     bool xTurn;
     GameState m_gs;
     CountdownTimer * xTimer;

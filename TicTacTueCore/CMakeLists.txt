@@ -25,6 +25,12 @@ qt_add_qml_module(TicTacTueCore
     tictactuecore.cpp
     SOURCES countdowntimer.h countdowntimer.cpp
     SOURCES gameclient.h gameclient.cpp
+    SOURCES offlinegame.h
+    SOURCES offlinegame.cpp
+    SOURCES onlinegame.h
+    SOURCES onlinegame.cpp
+    SOURCES aigame.h
+    SOURCES aigame.cpp
 )
 
 target_link_libraries(TicTacTueCore PRIVATE Qt${QT_VERSION_MAJOR}::Core)

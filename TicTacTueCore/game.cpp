@@ -70,6 +70,7 @@ bool Game::move(int x, int y)
         xTimer->pause();
         oTimer->start();
     }
+    emit boardChanged();
     board.display();
     checkWin();
     switchPlayer();
@@ -126,4 +127,5 @@ QString Game::getBoardSeq() const
 void Game::setBoardSeq(QString seq)
 {
     board.setSequence(seq);
+    emit boardChanged();
 }

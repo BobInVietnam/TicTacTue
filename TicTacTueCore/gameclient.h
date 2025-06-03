@@ -33,7 +33,7 @@ signals:
     void ondisconnected();
     void onstateChanged(QAbstractSocket::SocketState);
     void onerrorOccurred(QAbstractSocket::SocketError);
-    void messageReceived(QString);
+    void messageReceived(QByteArray);
     void pingChanged();
 private:
     static GameClient * instance;
