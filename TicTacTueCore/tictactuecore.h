@@ -26,6 +26,7 @@ class TicTacTueCore : public QObject
     Q_OBJECT;
     Q_PROPERTY(std::string msg READ msg WRITE setMsg NOTIFY msgChanged FINAL);
     Q_PROPERTY(bool xTurn READ xTurn NOTIFY turnChanged FINAL);
+    Q_PROPERTY(bool isX READ isX WRITE setIsX NOTIFY isXChanged FINAL)
     Q_PROPERTY(QString xTimerString READ xTimerString WRITE setXTimerString NOTIFY xTimerStringChanged FINAL)
     Q_PROPERTY(QString oTimerString READ oTimerString WRITE setOTimerString NOTIFY oTimerStringChanged FINAL)
     Q_PROPERTY(PlayerInfo * xInfo READ xInfo WRITE setXInfo NOTIFY xInfoChanged FINAL)
@@ -67,14 +68,18 @@ public:
     void setPing(int newPing);
 
 
+    bool isX() const;
+    void setIsX(bool newIsX);
+
 public slots:
-    bool getBoxPressed(int index);
+    void getBoxPressed(int index);
     void checkGameState();
     void reset();
     void getxTimerSignal();
     void getoTimerSignal();
     void startGame();
     void changeBoard();
+    void changeIsX();
 
 signals:
     void gameWon(const QString& side);
@@ -87,6 +92,8 @@ signals:
     void gamemodeChanged();
     void pingChanged();
     void boardChanged();
+
+    void isXChanged();
 
 private:
     Game * currentGame;
@@ -101,6 +108,7 @@ private:
     PlayerInfo *m_oInfo = nullptr;
     int m_gamemode;
     int m_ping;
+    bool m_isX;
 };
 
 #endif // TICTACTUECORE_H

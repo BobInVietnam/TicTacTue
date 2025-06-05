@@ -11,11 +11,13 @@ Rectangle {
 
     property string imageUrlPlayer : "images/ava1.png"
     property string imageUrlOpponent : "images/ava2.png"
-    property int gamemode : 0
+    property int gamemode : -1
     property int xWin : 0
     property int oWin : 0
+    property bool xTurn : true
     property bool blocking : false;
     property bool online : false;
+    property bool waitingForOpponent: true;
     width: Constants.width
     height: Constants.height
     gradient: Gradient {
@@ -31,12 +33,19 @@ Rectangle {
         orientation: Gradient.Vertical
     }
 
-    onGamemodeChanged: core.gamemode = gamemode
+    onGamemodeChanged: {
+        xTurn = true;
+        core.gamemode = gamemode
+        winStatus.visible = false;
+        xWin = 0;
+        oWin = 0;
+    }
 
     TicTacTueCore {
         id: core;
         onMsgChanged: () => console.log(msg)
         onGameWon: (side) => {
+                       blocking = true;
                        rematchButton.visible = true;
                        winStatus.text = side + " WON!!!";
                        winStatus.visible = true;
@@ -49,8 +58,11 @@ Rectangle {
         onXTimerStringChanged: () => { xGameStats.playerTime.text = core.xTimerString }
         onOTimerStringChanged: () => { oGameStats.playerTime.text = core.oTimerString }
         onBoardChanged: () => {
+                            root.xTurn = !root.xTurn;
                             loadBoardState(core.getBoardSeq())
-                            blocking = false;
+                            if (root.xTurn === core.isX || root.gamemode == 1) {
+                                blocking = false;
+                            }
                         }
     }
 
@@ -333,6 +345,10 @@ Rectangle {
                         target: rec.mouseArea
                         function onClicked() {
                             // Eventual C++ logic here
+                            if (boxGenerator.itemAt(index).state !== "empty") {
+                                return
+                            }
+
                             if (!blocking) {
                                 blocking = true;
                                 core.getBoxPressed(index)
@@ -357,7 +373,7 @@ Rectangle {
         y: 215
         width: 521
         height: 279
-        visible: gamemode == 2 && !online
+        visible: gamemode == 2 && waitingForOpponent
         color: "#293b29"
         radius: 8
         border.color: "#ffffff"
@@ -424,8 +440,10 @@ Rectangle {
                     console.log(boxGenerator.itemAt(i).state)
                     boxGenerator.itemAt(i).state = "empty"
                 }
+
                 blocking = false;
                 root.visible = false
+                gamemode = -1;
             }
         }
     }
@@ -479,6 +497,8 @@ Rectangle {
             core.reset();
             visible = false;
             winStatus.visible = false;
+            root.xTurn = true;
+            blocking = core.isX !== root.xTurn;
         }
     }
 
@@ -514,6 +534,24 @@ Rectangle {
             font.pixelSize: 16
             font.bold: true
         }
+    }
+
+    Image {
+        id: xIndicator
+        x: 79
+        y: 153
+        source: "images/x.svg"
+        fillMode: Image.PreserveAspectFit
+        visible: xTurn
+    }
+
+    Image {
+        id: oIndicator
+        x: 863
+        y: 153
+        source: "images/o.svg"
+        fillMode: Image.PreserveAspectFit
+        visible: !xTurn
     }
 
 }

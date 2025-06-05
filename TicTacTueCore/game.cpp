@@ -129,3 +129,16 @@ void Game::setBoardSeq(QString seq)
     board.setSequence(seq);
     emit boardChanged();
 }
+
+bool Game::isX() const
+{
+    return m_isX;
+}
+
+void Game::setIsX(bool newIsX)
+{
+    if (m_isX == newIsX)
+        return;
+    m_isX = newIsX;
+    emit isXChanged();
+}

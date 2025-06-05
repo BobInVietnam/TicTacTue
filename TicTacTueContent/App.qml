@@ -91,7 +91,7 @@ Window {
                 onClicked: {
                     gameScreen.gamemode = 0;
                     gamemodeWindow.visible = false;
-                    gameScreen.visible = true;
+                    gameScreen.visible = true;;
                 }
             }
 

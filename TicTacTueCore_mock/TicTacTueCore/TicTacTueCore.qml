@@ -8,6 +8,7 @@ Item {
 
     signal msgChanged()
     signal gameWon(QString side)
+    signal boardChanged()
 
     function getBoxPressed(index) {
         xTurn = !xTurn;

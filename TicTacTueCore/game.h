@@ -17,6 +17,7 @@ enum GameState {
 class Game : public QObject {
     Q_OBJECT
     Q_PROPERTY(GameState gs READ gs WRITE setGs NOTIFY gsChanged FINAL)
+    Q_PROPERTY(bool isX READ isX WRITE setIsX NOTIFY isXChanged FINAL)
 public:
     Game();
     ~Game();
@@ -36,18 +37,20 @@ public:
     CountdownTimer *getXTimer() const;
     CountdownTimer *getOTimer() const;
 
+    bool isX() const;
+    void setIsX(bool newIsX);
+
 private slots:
     void xTimerTimesup();
     void oTimerTimesup();
 signals:
     void gsChanged();
-    void xTimerChanged();
-    void oTimerChanged();
     void boardChanged();
     void msgReceived(QString);
+    void isXChanged();
+
 protected:
     Board board;
-    bool isYourTurn;
     bool xTurn;
     GameState m_gs;
     CountdownTimer * xTimer;
@@ -55,6 +58,8 @@ protected:
 
     void switchPlayer();
     void checkWin();
+private:
+    bool m_isX;
 };
 
 #endif // GAME_H

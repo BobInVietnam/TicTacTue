@@ -7,6 +7,7 @@ TicTacTueCore::TicTacTueCore() {
     setGamemode(-1);
     gameClient = GameClient::getInstance();
     currentGame = nullptr;
+    setIsX(true);
     QObject::connect(this, &TicTacTueCore::gamemodeChanged, &TicTacTueCore::startGame);
     qDebug() << "Core generated. Ready to go.";
 }
@@ -14,29 +15,21 @@ TicTacTueCore::TicTacTueCore() {
 void TicTacTueCore::initGame()
 {
     switch (gamemode()) {
+    case -1:
+        delete currentGame;
+        currentGame = nullptr;
+        break;
     case 0:
         delete currentGame;
-        currentGame = new AIGame();
-        QObject::connect(currentGame->getXTimer(), &CountdownTimer::currentTimeChanged, this, &TicTacTueCore::getxTimerSignal);
-        QObject::connect(currentGame->getOTimer(), &CountdownTimer::currentTimeChanged, this, &TicTacTueCore::getoTimerSignal);
-        QObject::connect(currentGame, &Game::gsChanged, this, &TicTacTueCore::checkGameState);
-        QObject::connect(currentGame, &Game::boardChanged, this, &TicTacTueCore::changeBoard);
+        currentGame = new AIGame(isX(), TicTacTueAI::Difficulty::Impossible);
         break;
     case 1:
         delete currentGame;
         currentGame = new OfflineGame();
-        QObject::connect(currentGame->getXTimer(), &CountdownTimer::currentTimeChanged, this, &TicTacTueCore::getxTimerSignal);
-        QObject::connect(currentGame->getOTimer(), &CountdownTimer::currentTimeChanged, this, &TicTacTueCore::getoTimerSignal);
-        QObject::connect(currentGame, &Game::boardChanged, this, &TicTacTueCore::changeBoard);
-        QObject::connect(currentGame, &Game::gsChanged, this, &TicTacTueCore::checkGameState);
         break;
     case 2:
         delete currentGame;
         currentGame = new OnlineGame();
-        QObject::connect(currentGame->getXTimer(), &CountdownTimer::currentTimeChanged, this, &TicTacTueCore::getxTimerSignal);
-        QObject::connect(currentGame->getOTimer(), &CountdownTimer::currentTimeChanged, this, &TicTacTueCore::getoTimerSignal);
-        QObject::connect(currentGame, &Game::boardChanged, this, &TicTacTueCore::changeBoard);
-        QObject::connect(currentGame, &Game::gsChanged, this, &TicTacTueCore::checkGameState);
         break;
     default:
         qDebug() << "WTF Gamemode?";
@@ -53,14 +46,11 @@ void TicTacTueCore::disconnectFromServer()
     gameClient->disconnect();
 }
 
-bool TicTacTueCore::getBoxPressed(int index)
+void TicTacTueCore::getBoxPressed(int index)
 {
     setMsg("Block number " + std::to_string(index) + " pressed");
-    if (currentGame->move(index / 3, index % 3)) {
+    if (currentGame->move(index / 3, index % 3))
         setXTurn();
-        return true;
-    }
-    return false;
 }
 
 void TicTacTueCore::checkGameState()
@@ -97,12 +87,26 @@ void TicTacTueCore::getoTimerSignal()
 void TicTacTueCore::startGame()
 {
     initGame();
+    if (currentGame != nullptr) {
+        QObject::connect(currentGame->getXTimer(), &CountdownTimer::currentTimeChanged, this, &TicTacTueCore::getxTimerSignal);
+        QObject::connect(currentGame->getOTimer(), &CountdownTimer::currentTimeChanged, this, &TicTacTueCore::getoTimerSignal);
+        QObject::connect(currentGame, &Game::isXChanged, this, &TicTacTueCore::changeIsX);
+        QObject::connect(currentGame, &Game::gsChanged, this, &TicTacTueCore::checkGameState);
+        QObject::connect(currentGame, &Game::boardChanged, this, &TicTacTueCore::changeBoard);
+        setXTimerString(currentGame->getxTimerString());
+        setOTimerString(currentGame->getoTimerString());
+    }
     qDebug() << "Current game mode: " << gamemode();
 }
 
 void TicTacTueCore::changeBoard()
 {
     emit boardChanged();
+}
+
+void TicTacTueCore::changeIsX()
+{
+    setIsX(currentGame->isX());
 }
 
 std::string TicTacTueCore::msg() const
@@ -217,4 +221,17 @@ void TicTacTueCore::setPing(int newPing)
         return;
     m_ping = newPing;
     emit pingChanged();
+}
+
+bool TicTacTueCore::isX() const
+{
+    return m_isX;
+}
+
+void TicTacTueCore::setIsX(bool newIsX)
+{
+    if (m_isX == newIsX)
+        return;
+    m_isX = newIsX;
+    emit isXChanged();
 }

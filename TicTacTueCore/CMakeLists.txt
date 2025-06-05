@@ -31,6 +31,7 @@ qt_add_qml_module(TicTacTueCore
     SOURCES onlinegame.cpp
     SOURCES aigame.h
     SOURCES aigame.cpp
+    SOURCES tictactueai.h tictactueai.cpp
 )
 
 target_link_libraries(TicTacTueCore PRIVATE Qt${QT_VERSION_MAJOR}::Core)
