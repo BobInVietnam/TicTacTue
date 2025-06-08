@@ -11,12 +11,6 @@ class TicTacTueAI : public QObject
 {
     Q_OBJECT
 public:
-    enum class Difficulty {
-        Easy,
-        Hard,
-        Impossible
-    };
-    Q_ENUM(Difficulty)
 
     explicit TicTacTueAI(QObject *parent = nullptr);
 
@@ -31,7 +25,7 @@ public:
     Q_INVOKABLE void requestMove(const QString& currentBoardString,
                                  char aiPlayer,
                                  char humanPlayer,
-                                 Difficulty difficulty);
+                                 int difficulty);
 
 signals:
     /**

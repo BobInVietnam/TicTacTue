@@ -15,6 +15,7 @@ Rectangle {
     width: Constants.width
     height: Constants.height
     color: "#2d3f2d"
+    property alias settingsButton: settingsButton
     property alias startButton: startButton
 
     Column {

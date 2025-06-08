@@ -12,6 +12,9 @@ Rectangle {
     property string imageUrlPlayer : "images/ava1.png"
     property string imageUrlOpponent : "images/ava2.png"
     property int gamemode : -1
+    property int aiDiffLevel : 1;
+    property string playerName : "";
+    property bool aiIsX : false;
     property int xWin : 0
     property int oWin : 0
     property bool xTurn : true
@@ -20,6 +23,7 @@ Rectangle {
     property bool waitingForOpponent: true;
     width: Constants.width
     height: Constants.height
+    z: 10
     gradient: Gradient {
         GradientStop {
             position: 0
@@ -41,8 +45,15 @@ Rectangle {
         oWin = 0;
     }
 
+    MouseArea {
+        id: mouseCapturer
+        anchors.fill: parent
+    }
+
     TicTacTueCore {
         id: core;
+        aiDiff: aiDiffLevel
+        isX: gamemode === 0? !aiIsX : true;
         onMsgChanged: () => console.log(msg)
         onGameWon: (side) => {
                        blocking = true;
@@ -62,18 +73,65 @@ Rectangle {
                             loadBoardState(core.getBoardSeq())
                             if (root.xTurn === core.isX || root.gamemode == 1) {
                                 blocking = false;
+                            } else {
+                                blocking = true;
                             }
                         }
+        onRoomCreated: () => {
+                           root.roomCreated();
+                       }
+
+        onRoomJoined: () => {
+                          root.roomJoined();
+                      }
+        onUsernameSet: () => {
+                        root.usernameSet();
+                       }
+        onRoomErrorOccured: (msg) => {
+                                root.roomErrorOccured(msg);
+                            }
+
+        onServerConnected: () => {
+                               online = true;
+                           }
+        onServerDisconnected: () => {
+                                  online = false;
+                              }
+        onGameStarted: () => {
+                        waitingForOpponent = false;
+                        root.xTurn = false;
+                       }
+        onChatReceived: (msg) => {
+                            myListModel.createListElement(msg)
+                        }
+        onOpponentLeft: () => {
+                            waitingForOpponent = true;
+                        }
     }
+
+    signal roomCreated();
+    signal roomJoined();
+    signal usernameSet();
+    signal roomErrorOccured(string msg);
 
     function toggleServer() {
         if (!online) {
             core.connectToServer();
-            online = true;
         } else {
             core.disconnectFromServer();
-            online = false;
         }
+    }
+
+    function setUsername(usr) {
+        core.setUsername(usr);
+    }
+
+    function createRoom(rid) {
+        core.createRoom(rid);
+    }
+
+    function joinRoom(rid) {
+        core.joinRoom(rid);
     }
 
     Rectangle {
@@ -236,7 +294,9 @@ Rectangle {
                     verticalAlignment: Text.AlignVCenter
                     selectionColor: "#beffffff"
                     selectedTextColor: "#1e1e1e"
-                    onAccepted: () => {}
+                    onAccepted: () => {
+                                core.sendMessage(textInput.text);
+                                }
                 }
             }
 
@@ -267,8 +327,8 @@ Rectangle {
                         y: 0
                         model:  ListModel {
                             id: myListModel
-                            function createListElement() {
-                                return { "name": "Placeholder", "msg": textInput.text }
+                            function createListElement(msg) {
+                                return {"msg": msg}
                             }
                             function clearList() {
                                 myListModel.clear()
@@ -284,11 +344,10 @@ Rectangle {
                             Text {
                                 id: chatMsg
                                 color: "#ffffff"
-                                text: name + ": " + msg
+                                text: msg
                                 wrapMode: Text.WordWrap
                                 fontSizeMode: Text.VerticalFit
                                 font.pointSize: 10
-
                             }
                         }
                     }
@@ -348,7 +407,6 @@ Rectangle {
                             if (boxGenerator.itemAt(index).state !== "empty") {
                                 return
                             }
-
                             if (!blocking) {
                                 blocking = true;
                                 core.getBoxPressed(index)
@@ -418,6 +476,8 @@ Rectangle {
             onClicked: {
                 blocking = false;
                 root.visible = false;
+                if (gamemode == 2) core.leaveRoom();
+                gamemode = -1;
             }
         }
     }
@@ -440,9 +500,9 @@ Rectangle {
                     console.log(boxGenerator.itemAt(i).state)
                     boxGenerator.itemAt(i).state = "empty"
                 }
-
                 blocking = false;
-                root.visible = false
+                root.visible = false;
+                if (gamemode == 2) core.leaveRoom();
                 gamemode = -1;
             }
         }

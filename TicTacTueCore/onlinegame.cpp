@@ -3,13 +3,13 @@
 OnlineGame::OnlineGame() {
     gameClient = GameClient::getInstance();
     connect(gameClient, &GameClient::messageReceived, this, &OnlineGame::receiveServerUpdate);
-    gameClient->sendMessage("START");
+
+    QJsonObject json;
     qDebug() << "OnlineGame created";
 }
 
 OnlineGame::~OnlineGame()
 {
-
     qDebug() << "OnlineGame destroyed";
 }
 
@@ -20,7 +20,13 @@ void OnlineGame::reset()
     xTurn = true;
     xTimer->reset();
     oTimer->reset();
-    gameClient->sendMessage("RESET");
+    QJsonObject json;
+
+    json["CID"] = gameClient->cId();
+    json["RID"] = gameClient->rId();
+    json["INGAME"] = true;
+    json["CMD"] = "REMATCH";
+    gameClient->sendMessage(QJsonDocument(json).toJson(QJsonDocument::Compact));
 }
 
 bool OnlineGame::move(int x, int y)
@@ -35,33 +41,30 @@ bool OnlineGame::move(int x, int y)
         return false;
     }
     int pos = x * 3 + y;
-    gameClient->sendMessage("MOVE:" + QString::fromStdString(std::to_string(pos)));
+    QJsonObject json;
+    json["CID"] = gameClient->cId();
+    json["RID"] = gameClient->rId();
+    json["INGAME"] = true;
+    json["CMD"] = "MOVE";
+    json["AT"] = pos;
+    gameClient->sendMessage(QJsonDocument(json).toJson(QJsonDocument::Compact));
     return true;
 }
 
-void OnlineGame::receiveServerUpdate(QByteArray data)
+void OnlineGame::receiveServerUpdate(const QJsonObject& json)
 {
-    QString msg = QString::fromUtf8(data).trimmed();
-    QStringList lines = msg.split('\n');
-    for (QString line : lines) {
-        if (line.startsWith("ASSIGN:")) {
-            char symbol = line.at(7).toLatin1();
-            switch (symbol) {
-            case 'X':
-                setIsX(true);
-                break;
-            case 'O':
-                setIsX(false);
-                break;
-            default:
-                throw new std::logic_error("Wrong assignment symbol.");
-                break;
-            }
-        }
-        if (line.startsWith("BOARD:")) {
-            QString seq = line.last(10).first(9);
+    if (json.value("INGAME").toBool()) {
+        QString type = json.value("CMD").toString("NULL");
+        if (type == "ASN") {
+            bool isX = json.value("ISX").toBool();
+            setIsX(isX);
+            emit gameStarted();
+        } else if (type == "UPD") {
+            QString seq = json.value("SEQ").toString();
             setBoardSeq(seq);
-            if (!xTurn) {
+            xTimer->setInitialTime(json.value("X_T").toInt());
+            oTimer->setInitialTime(json.value("O_T").toInt());
+            if (xTurn) {
                 xTimer->start();
                 oTimer->pause();
             } else {
@@ -69,23 +72,39 @@ void OnlineGame::receiveServerUpdate(QByteArray data)
                 oTimer->start();
             }
             xTurn = !xTurn;
-        } else if (line.startsWith("WINNER:")) {
-            char symbol = line.at(7).toLatin1();
+            char symbol = json.value("GS").toString().at(0).toLatin1();
             switch (symbol) {
             case 'X':
                 setGs(GameState::XWON);
+                xTimer->pause();
+                oTimer->pause();
                 break;
             case 'O':
                 setGs(GameState::OWON);
+                xTimer->pause();
+                oTimer->pause();
+                break;
+            case 'D':
+                setGs(GameState::DRAW);
+                xTimer->pause();
+                oTimer->pause();
+                break;
+            case 'B':
+                setGs(GameState::BEGIN);
+                xTimer->pause();
+                oTimer->pause();
                 break;
             case 'N':
-                setGs(GameState::DRAW);
+                setGs(GameState::STARTED);
                 break;
             }
+        } else if (type == "OPP_LEFT") {
             xTimer->pause();
             oTimer->pause();
+            emit opponentLeft();
+        } else if (type == "CHAT") {
+            emit receivedChat(json.value("MSG").toString());
         }
     }
+
 }
-
-

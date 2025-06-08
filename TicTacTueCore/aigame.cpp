@@ -30,13 +30,15 @@ bool AIGame::aiMove(QString newBoardState)
     return true;
 }
 
-AIGame::AIGame(bool isX, TicTacTueAI::Difficulty diff) {
+AIGame::AIGame(bool isX, int diff) {
     setIsX(isX);
     this->diff = diff;
+    aiTimer.setSingleShot(true);
     QObject::connect(&ai, &TicTacTueAI::moveReady, this, &AIGame::aiMove);
+    QObject::connect(&aiTimer, &QTimer::timeout, this, &AIGame::requestMove);
     qDebug() << "AIGame created";
     if (isX != xTurn) {
-        QTimer::singleShot(1000, this, &AIGame::requestMove);
+        aiTimer.singleShot(1000, this, &AIGame::requestMove);
     }
 }
 
@@ -50,13 +52,14 @@ void AIGame::switchPlayer() {
 
 void AIGame::reset()
 {
+    aiTimer.stop();
     setGs(GameState::BEGIN);
     board.clear();
     xTurn = true;
     xTimer->reset();
     oTimer->reset();
     if (isX() != xTurn) {
-        QTimer::singleShot(1000, this, &AIGame::requestMove);
+        aiTimer.start(1000);
     }
 }
 
@@ -78,11 +81,11 @@ bool AIGame::move(int x, int y)
         xTimer->pause();
         oTimer->start();
     }
-    switchPlayer();
     emit boardChanged();
     board.display();
     checkWin();
-    QTimer::singleShot(1000, this, &AIGame::requestMove);
+    switchPlayer();
+    aiTimer.start(1000);
     return true;
 }
 
@@ -109,40 +112,3 @@ void AIGame::requestMove()
     ai.requestMove(getBoardSeq(), symAi, symPlayer, diff);
 }
 
-// bool AIGame::getXTurn() const
-// {
-//     return xTurn;
-// }
-
-// QString AIGame::getxTimerString() const
-// {
-//     return xTimer->currentTimeText();
-// }
-
-// QString AIGame::getoTimerString() const
-// {
-//     return oTimer->currentTimeText();
-// }
-
-// GameState AIGame::gs() const
-// {
-//     return m_gs;
-// }
-
-// void AIGame::setGs(GameState newGs)
-// {
-//     if (m_gs == newGs)
-//         return;
-//     m_gs = newGs;
-//     emit gsChanged();
-// }
-
-// QString AIGame::getBoardSeq() const
-// {
-//     return QString::fromStdString(board.getSequence());
-// }
-
-// void AIGame::setBoardSeq(QString seq)
-// {
-//     board.setSequence(seq);
-// }

@@ -10,7 +10,7 @@
 
 class AIGame : public Game {
 public:
-    AIGame(bool, TicTacTueAI::Difficulty);
+    AIGame(bool, int);
     ~AIGame();
     void reset() override;
     bool move(int x, int y) override;
@@ -24,8 +24,9 @@ private slots:
     void checkWin();
 private:
     TicTacTueAI ai;
-    TicTacTueAI::Difficulty diff;
+    int diff;
 
+    QTimer aiTimer;
 };
 
 #endif // AIGAME_H

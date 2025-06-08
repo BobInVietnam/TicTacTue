@@ -34,7 +34,7 @@ QString TicTacTueAI::boardToQString(const Board& board) const {
 void TicTacTueAI::requestMove(const QString& currentBoardString,
                               char aiPlayer,
                               char humanPlayer,
-                              Difficulty difficulty)
+                              int difficulty)
 {
     // Capture necessary variables for the lambda
     // Note: Capturing `this` allows calling member functions and emitting signals.
@@ -51,15 +51,17 @@ void TicTacTueAI::requestMove(const QString& currentBoardString,
         }
 
         switch (difficulty) {
-        case Difficulty::Easy:
+        case 1:
             bestMove = findRandomMove(board);
             break;
-        case Difficulty::Hard:
+        case 2:
             bestMove = findHardMove(board, aiPlayer, humanPlayer);
             break;
-        case Difficulty::Impossible:
+        case 3:
             bestMove = findImpossibleMove(board, aiPlayer, humanPlayer);
             break;
+        default:
+            bestMove = findRandomMove(board);
         }
 
         Board nextBoard = board;
@@ -133,20 +135,8 @@ int TicTacTueAI::findHardMove(const Board& board, char aiPlayer, char humanPlaye
         return 4;
     }
 
-    // 4. Try to take an available corner
-    std::vector<int> corners = {0, 2, 6, 8};
-    std::vector<int> availableCorners;
-    for (int corner : corners) {
-        if (board[corner] == ' ') {
-            availableCorners.push_back(corner);
-        }
-    }
-    if (!availableCorners.empty()) {
-        return availableCorners[std::rand() % availableCorners.size()];
-    }
-
-    // 5. Otherwise, make a random available move (sides)
-    return findRandomMove(board); // Will pick from remaining sides or any if corners were full
+    // 4. Otherwise, make a random available move (sides)
+    return findRandomMove(board);
 }
 
 

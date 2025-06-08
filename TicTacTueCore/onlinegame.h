@@ -7,9 +7,9 @@
 #include <QTimer>
 #include <game.h>
 #include <gameclient.h>
+#include <QJsonObject>
 
 class OnlineGame : public Game {
-
 public:
     OnlineGame();
     ~OnlineGame();
@@ -17,11 +17,12 @@ public:
     bool move(int x, int y) override;
 
 private slots:
-    void receiveServerUpdate(QByteArray);
+    void receiveServerUpdate(const QJsonObject&);
 signals:
 
 private:
     GameClient * gameClient;
+
 };
 
 #endif // ONLINEGAME_H

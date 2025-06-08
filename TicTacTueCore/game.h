@@ -48,6 +48,9 @@ signals:
     void boardChanged();
     void msgReceived(QString);
     void isXChanged();
+    void receivedChat(const QString&);
+    void gameStarted();
+    void opponentLeft();
 
 protected:
     Board board;

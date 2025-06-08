@@ -25,7 +25,7 @@ class TicTacTueCore : public QObject
 {
     Q_OBJECT;
     Q_PROPERTY(std::string msg READ msg WRITE setMsg NOTIFY msgChanged FINAL);
-    Q_PROPERTY(bool xTurn READ xTurn NOTIFY turnChanged FINAL);
+    // Q_PROPERTY(bool xTurn READ xTurn NOTIFY turnChanged FINAL);
     Q_PROPERTY(bool isX READ isX WRITE setIsX NOTIFY isXChanged FINAL)
     Q_PROPERTY(QString xTimerString READ xTimerString WRITE setXTimerString NOTIFY xTimerStringChanged FINAL)
     Q_PROPERTY(QString oTimerString READ oTimerString WRITE setOTimerString NOTIFY oTimerStringChanged FINAL)
@@ -33,6 +33,7 @@ class TicTacTueCore : public QObject
     Q_PROPERTY(PlayerInfo * oInfo READ oInfo WRITE setOInfo NOTIFY oInfoChanged FINAL)
     Q_PROPERTY(int gamemode READ gamemode WRITE setGamemode NOTIFY gamemodeChanged)
     Q_PROPERTY(int ping READ ping WRITE setPing NOTIFY pingChanged FINAL)
+    Q_PROPERTY(int aiDiff READ aiDiff WRITE setAiDiff)
     QML_ELEMENT;
 public:
 
@@ -40,12 +41,17 @@ public:
     void initGame();
     Q_INVOKABLE void connectToServer();
     Q_INVOKABLE void disconnectFromServer();
+    Q_INVOKABLE void setUsername(const QString&);
+    Q_INVOKABLE void createRoom(const QString&);
+    Q_INVOKABLE void joinRoom(const QString&);
+    Q_INVOKABLE void leaveRoom();
+    Q_INVOKABLE void sendMessage(const QString&);
 
     std::string msg() const;
     void setMsg(const std::string &newMsg);
 
-    bool xTurn() const;
-    void setXTurn();
+    // bool xTurn() const;
+    // void setXTurn();
 
     QString xTimerString() const;
     void setXTimerString(const QString &newXTimerString);
@@ -71,6 +77,9 @@ public:
     bool isX() const;
     void setIsX(bool newIsX);
 
+    int aiDiff() const;
+    void setAiDiff(int newAiDiff);
+
 public slots:
     void getBoxPressed(int index);
     void checkGameState();
@@ -81,6 +90,12 @@ public slots:
     void changeBoard();
     void changeIsX();
 
+    void connectToServerSuccess();
+    void disconnectFromServerSuccess();
+    void receiveServerMessage(const QJsonObject&);
+    void onGameStarted();
+    void onChatReceived(const QString&);
+    void onOpponentLeft();
 signals:
     void gameWon(const QString& side);
     void msgChanged();
@@ -94,7 +109,16 @@ signals:
     void boardChanged();
 
     void isXChanged();
-
+    void serverConnected();
+    void serverDisconnected();
+    void roomCreated();
+    void roomJoined();
+    void usernameSet();
+    void roomErrorOccured(const QString&);
+    void roomMsgReceived(const QString&);
+    void gameStarted();
+    void chatReceived(const QString&);
+    void opponentLeft();
 private:
     Game * currentGame;
     GameClient * gameClient;
@@ -109,6 +133,7 @@ private:
     int m_gamemode;
     int m_ping;
     bool m_isX;
+    int m_aiDiff;
 };
 
 #endif // TICTACTUECORE_H

@@ -5,10 +5,17 @@ Item {
     property bool xTurn: true;
     property QString xTimerString: "value"
     property QString oTimerString: "value"
+    property bool isX : true;
+    property int aiDiff : -1;
 
     signal msgChanged()
     signal gameWon(QString side)
     signal boardChanged()
+    signal roomCreated();
+    signal roomJoined();
+    signal usernameSet();
+    signal serverConnected();
+    signal serverDisconnected();
 
     function getBoxPressed(index) {
         xTurn = !xTurn;

@@ -9,6 +9,9 @@ TicTacTueCore::TicTacTueCore() {
     currentGame = nullptr;
     setIsX(true);
     QObject::connect(this, &TicTacTueCore::gamemodeChanged, &TicTacTueCore::startGame);
+    QObject::connect(gameClient, &GameClient::onconnected, this, &TicTacTueCore::connectToServerSuccess);
+    QObject::connect(gameClient, &GameClient::ondisconnected, this, &TicTacTueCore::disconnectFromServerSuccess);
+    QObject::connect(gameClient, &GameClient::messageReceived, this, &TicTacTueCore::receiveServerMessage);
     qDebug() << "Core generated. Ready to go.";
 }
 
@@ -21,7 +24,7 @@ void TicTacTueCore::initGame()
         break;
     case 0:
         delete currentGame;
-        currentGame = new AIGame(isX(), TicTacTueAI::Difficulty::Impossible);
+        currentGame = new AIGame(isX(), aiDiff());
         break;
     case 1:
         delete currentGame;
@@ -46,11 +49,68 @@ void TicTacTueCore::disconnectFromServer()
     gameClient->disconnect();
 }
 
+void TicTacTueCore::setUsername(const QString &usrname)
+{
+    QJsonObject json;
+
+    json["CID"] = gameClient->cId();
+    json["INGAME"] = false;
+    json["CMD"] = "USRNAME";
+    json["USRNAME"] = usrname;
+    gameClient->sendMessage(QJsonDocument(json).toJson(QJsonDocument::Compact));
+}
+
+void TicTacTueCore::createRoom(const QString &rid)
+{
+    QJsonObject json;
+
+    json["CID"] = gameClient->cId();
+    json["INGAME"] = false;
+    json["CMD"] = "CR";
+    json["RID"] = rid;
+    gameClient->sendMessage(QJsonDocument(json).toJson(QJsonDocument::Compact));
+}
+
+
+void TicTacTueCore::joinRoom(const QString &rid)
+{
+    QJsonObject json;
+
+    json["CID"] = gameClient->cId();
+    json["INGAME"] = false;
+    json["CMD"] = "JR";
+    json["RID"] = rid;
+    gameClient->sendMessage(QJsonDocument(json).toJson(QJsonDocument::Compact));
+}
+
+void TicTacTueCore::leaveRoom()
+{
+    QJsonObject json;
+
+    json["CID"] = gameClient->cId();
+    json["INGAME"] = false;
+    json["CMD"] = "LR";
+    json["RID"] = gameClient->rId();
+    gameClient->sendMessage(QJsonDocument(json).toJson(QJsonDocument::Compact));
+}
+
+void TicTacTueCore::sendMessage(const QString & msg)
+{
+    QJsonObject json;
+
+    json["CID"] = gameClient->cId();
+    json["RID"] = gameClient->rId();
+    json["INGAME"] = true;
+    json["CMD"] = "CHAT";
+    json["MSG"] = msg;
+    gameClient->sendMessage(QJsonDocument(json).toJson(QJsonDocument::Compact));
+}
+
 void TicTacTueCore::getBoxPressed(int index)
 {
     setMsg("Block number " + std::to_string(index) + " pressed");
-    if (currentGame->move(index / 3, index % 3))
-        setXTurn();
+    currentGame->move(index / 3, index % 3);
+        // setXTurn();
 }
 
 void TicTacTueCore::checkGameState()
@@ -93,6 +153,9 @@ void TicTacTueCore::startGame()
         QObject::connect(currentGame, &Game::isXChanged, this, &TicTacTueCore::changeIsX);
         QObject::connect(currentGame, &Game::gsChanged, this, &TicTacTueCore::checkGameState);
         QObject::connect(currentGame, &Game::boardChanged, this, &TicTacTueCore::changeBoard);
+        QObject::connect(currentGame, &Game::receivedChat, this, &TicTacTueCore::onChatReceived);
+        QObject::connect(currentGame, &Game::gameStarted, this, &TicTacTueCore::onGameStarted);
+        QObject::connect(currentGame, &Game::opponentLeft, this, &TicTacTueCore::onOpponentLeft);
         setXTimerString(currentGame->getxTimerString());
         setOTimerString(currentGame->getoTimerString());
     }
@@ -109,6 +172,51 @@ void TicTacTueCore::changeIsX()
     setIsX(currentGame->isX());
 }
 
+void TicTacTueCore::connectToServerSuccess()
+{
+    emit serverConnected();
+}
+
+void TicTacTueCore::disconnectFromServerSuccess()
+{
+    emit serverDisconnected();
+}
+
+void TicTacTueCore::receiveServerMessage(const QJsonObject &json)
+{
+    if (!json.value("INGAME").toBool()) {
+        QString cmd = json.value("CMD").toString("NULL");
+        if (cmd == "CR_OK") {
+            gameClient->setRId(json.value("RID").toString());
+            emit roomCreated();
+        } else if (cmd == "JR_OK") {
+            gameClient->setRId(json.value("RID").toString());
+            emit roomJoined();
+        } else if (cmd == "US_OK") {
+            emit usernameSet();
+        } else if (cmd == "ERR") {
+            emit roomErrorOccured(json.value("MSG").toString("Error"));
+        } else {
+            qWarning() << "GM: invalid message received??";
+        }
+    }
+}
+
+void TicTacTueCore::onGameStarted()
+{
+    emit gameStarted();
+}
+
+void TicTacTueCore::onChatReceived(const QString& msg)
+{
+    emit chatReceived(msg);
+}
+
+void TicTacTueCore::onOpponentLeft()
+{
+    emit opponentLeft();
+}
+
 std::string TicTacTueCore::msg() const
 {
     return m_msg;
@@ -122,18 +230,18 @@ void TicTacTueCore::setMsg(const std::string &newMsg)
     emit msgChanged();
 }
 
-bool TicTacTueCore::xTurn() const
-{
-    return m_xTurn;
-}
+// bool TicTacTueCore::xTurn() const
+// {
+//     return m_xTurn;
+// }
 
-void TicTacTueCore::setXTurn()
-{
-    if (m_xTurn != currentGame->getXTurn()) {
-        m_xTurn = currentGame->getXTurn();
-        emit turnChanged();
-    }
-}
+// void TicTacTueCore::setXTurn()
+// {
+//     if (m_xTurn != currentGame->getXTurn()) {
+//         m_xTurn = currentGame->getXTurn();
+//         emit turnChanged();
+//     }
+// }
 
 QString TicTacTueCore::xTimerString() const
 {
@@ -234,4 +342,14 @@ void TicTacTueCore::setIsX(bool newIsX)
         return;
     m_isX = newIsX;
     emit isXChanged();
+}
+
+int TicTacTueCore::aiDiff() const
+{
+    return m_aiDiff;
+}
+
+void TicTacTueCore::setAiDiff(int newAiDiff)
+{
+    m_aiDiff = newAiDiff;
 }
