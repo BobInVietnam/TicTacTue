@@ -358,7 +358,8 @@ Window {
             id: aiIsXSwitch
             x: 531
             width: 66
-            height: 47 ; anchors.top: diffSlider.bottom; anchors.topMargin: 8 ;icon.color: "#ffffff" }
+            height: 47 ; anchors.top: diffSlider.bottom; anchors.topMargin: 8 ;icon.color: "#ffffff"
+        }
 
 
         Text {
@@ -503,9 +504,11 @@ Window {
             anchors.top: parent.top
             anchors.leftMargin: 112
             anchors.topMargin: 79
+            textInput.text: "Guest"
             textInput.onEditingFinished: {
                 gameScreen.setUsername(textInput.text);
             }
+            textInput.maximumLength: 20
         }
 
 
@@ -516,6 +519,8 @@ Window {
             anchors.top: parent.top
             anchors.leftMargin: 112
             anchors.topMargin: 131
+            textInput.inputMask: "NNNNNN"
+            textInput.text: "000000"
         }
 
 
@@ -539,9 +544,13 @@ Window {
             anchors.bottom: parent.bottom
             anchors.bottomMargin: 32
             onClicked: {
-                busyIndicator.running = true;
-                gameScreen.createRoom(roomIdInput.textInput.text);
-                statusIndicator.visible = false;
+                if (roomIdInput.textInput.acceptableInput) {
+                    busyIndicator.running = true;
+                    gameScreen.createRoom(roomIdInput.textInput.text);
+                    statusIndicator.visible = false;
+                } else {
+                    statusIndicator.text = "Room ID must be 6 characters long"
+                }
             }
         }
 
@@ -553,9 +562,13 @@ Window {
             anchors.bottom: parent.bottom
             anchors.bottomMargin: 32
             onClicked: {
-                busyIndicator.running = true;
-                gameScreen.joinRoom(roomIdInput.textInput.text);
-                statusIndicator.visible = false;
+                if (roomIdInput.textInput.acceptableInput) {
+                    busyIndicator.running = true;
+                    gameScreen.joinRoom(roomIdInput.textInput.text);
+                    statusIndicator.visible = false;
+                } else {
+                    statusIndicator.text = "Room ID must be 6 characters long"
+                }
             }
         }
 

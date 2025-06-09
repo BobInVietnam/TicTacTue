@@ -1,4 +1,5 @@
 import QtQuick
+import QtQuick.Controls
 
 Rectangle {
     id: root
@@ -12,7 +13,7 @@ Rectangle {
     TextInput {
         id: textInput
         color: "#ffffff"
-        text: qsTr("Text Input")
+        validator: RegularExpressionValidator {regularExpression: /^[a-zA-Z0-9]*$/}
         anchors.fill: parent
         anchors.leftMargin: 8
         anchors.rightMargin: 8

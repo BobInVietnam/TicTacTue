@@ -58,7 +58,7 @@ void OnlineGame::receiveServerUpdate(const QJsonObject& json)
         if (type == "ASN") {
             bool isX = json.value("ISX").toBool();
             setIsX(isX);
-            emit gameStarted();
+            emit gameStarted(isX);
         } else if (type == "UPD") {
             QString seq = json.value("SEQ").toString();
             setBoardSeq(seq);

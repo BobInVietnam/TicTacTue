@@ -17,8 +17,6 @@ Rectangle {
     property bool aiIsX : false;
     property int xWin : 0
     property int oWin : 0
-    property bool xTurn : true
-    property bool blocking : false;
     property bool online : false;
     property bool waitingForOpponent: true;
     width: Constants.width
@@ -38,7 +36,9 @@ Rectangle {
     }
 
     onGamemodeChanged: {
-        xTurn = true;
+        if (gamemode === 0) {
+            core.isX = !aiIsX
+        }
         core.gamemode = gamemode
         winStatus.visible = false;
         xWin = 0;
@@ -53,10 +53,8 @@ Rectangle {
     TicTacTueCore {
         id: core;
         aiDiff: aiDiffLevel
-        isX: gamemode === 0? !aiIsX : true;
         onMsgChanged: () => console.log(msg)
         onGameWon: (side) => {
-                       blocking = true;
                        rematchButton.visible = true;
                        winStatus.text = side + " WON!!!";
                        winStatus.visible = true;
@@ -69,13 +67,7 @@ Rectangle {
         onXTimerStringChanged: () => { xGameStats.playerTime.text = core.xTimerString }
         onOTimerStringChanged: () => { oGameStats.playerTime.text = core.oTimerString }
         onBoardChanged: () => {
-                            root.xTurn = !root.xTurn;
                             loadBoardState(core.getBoardSeq())
-                            if (root.xTurn === core.isX || root.gamemode == 1) {
-                                blocking = false;
-                            } else {
-                                blocking = true;
-                            }
                         }
         onRoomCreated: () => {
                            root.roomCreated();
@@ -99,10 +91,9 @@ Rectangle {
                               }
         onGameStarted: () => {
                         waitingForOpponent = false;
-                        root.xTurn = false;
                        }
         onChatReceived: (msg) => {
-                            myListModel.createListElement(msg)
+                            myListModel.append(myListModel.createListElement(msg))
                         }
         onOpponentLeft: () => {
                             waitingForOpponent = true;
@@ -284,12 +275,12 @@ Rectangle {
                 TextInput {
                     id: textInput
                     color: "#ffffff"
-                    text: qsTr("Enter message....")
                     anchors.fill: parent
                     anchors.leftMargin: 8
                     anchors.rightMargin: 8
                     anchors.topMargin: 0
                     anchors.bottomMargin: 0
+                    clip: true;
                     font.pixelSize: 12
                     verticalAlignment: Text.AlignVCenter
                     selectionColor: "#beffffff"
@@ -315,46 +306,48 @@ Rectangle {
 
                 ScrollView {
                     id: rectangle1
+                    width: 200
+                    height: 160
                     anchors.fill: parent
                     anchors.leftMargin: 8
                     anchors.rightMargin: 8
                     anchors.topMargin: 8
                     anchors.bottomMargin: 8
+                    clip: true
 
-                    Repeater {
-                        id: repeater
-                        x: 0
-                        y: 0
-                        model:  ListModel {
-                            id: myListModel
-                            function createListElement(msg) {
-                                return {"msg": msg}
+                    Column {
+                        id: contentColumn
+                        anchors.fill: parent
+                        spacing: 4
+
+                        Repeater {
+                            id: repeater
+                            model:  ListModel {
+                                id: myListModel
+                                function createListElement(msg) {
+                                    return {"msg": msg}
+                                }
                             }
-                            function clearList() {
-                                myListModel.clear()
-                            }
-                        }
 
-                        Rectangle {
-                            id: chatItem
-                            width: parent.width
-                            visible: true
-                            color: "#5e5e5e"
-
-                            Text {
-                                id: chatMsg
-                                color: "#ffffff"
-                                text: msg
-                                wrapMode: Text.WordWrap
-                                fontSizeMode: Text.VerticalFit
-                                font.pointSize: 10
+                            delegate: Rectangle {
+                                id: chatItem
+                                width: parent.width
+                                height: chatMsg.height
+                                color: "#00ffffff"
+                                Text {
+                                    id: chatMsg
+                                    color: "#ffffff"
+                                    text: msg
+                                    width: parent.width
+                                    wrapMode: Text.WordWrap
+                                    fontSizeMode: Text.VerticalFit
+                                    font.pointSize: 10
+                                }
                             }
                         }
                     }
                 }
-
             }
-
         }
     }
 
@@ -406,14 +399,11 @@ Rectangle {
                             // Eventual C++ logic here
                             if (boxGenerator.itemAt(index).state !== "empty") {
                                 return
-                            }
-                            if (!blocking) {
-                                blocking = true;
+                            } else {
                                 core.getBoxPressed(index)
                             }
                         }
                     }
-
                 }
             }
         }
@@ -474,10 +464,7 @@ Rectangle {
             y: 185
             text: "Cancel & Quit"
             onClicked: {
-                blocking = false;
-                root.visible = false;
-                if (gamemode == 2) core.leaveRoom();
-                gamemode = -1;
+                root.quitGame();
             }
         }
     }
@@ -496,16 +483,20 @@ Rectangle {
         Connections {
             target: quitGame
             function onClicked() {
-                for (var i = 0; i < 9; i++) {
-                    console.log(boxGenerator.itemAt(i).state)
-                    boxGenerator.itemAt(i).state = "empty"
-                }
-                blocking = false;
-                root.visible = false;
-                if (gamemode == 2) core.leaveRoom();
-                gamemode = -1;
+                root.quitGame();
             }
         }
+    }
+
+    function quitGame() {
+        for (var i = 0; i < 9; i++) {
+            console.log(boxGenerator.itemAt(i).state)
+            boxGenerator.itemAt(i).state = "empty"
+        }
+        root.visible = false;
+        if (gamemode == 2) core.leaveRoom();
+        gamemode = -1;
+        myListModel.clear()
     }
 
     PlayerTimeScore {
@@ -557,8 +548,6 @@ Rectangle {
             core.reset();
             visible = false;
             winStatus.visible = false;
-            root.xTurn = true;
-            blocking = core.isX !== root.xTurn;
         }
     }
 
@@ -602,7 +591,7 @@ Rectangle {
         y: 153
         source: "images/x.svg"
         fillMode: Image.PreserveAspectFit
-        visible: xTurn
+        visible: core.xTurn
     }
 
     Image {
@@ -611,7 +600,7 @@ Rectangle {
         y: 153
         source: "images/o.svg"
         fillMode: Image.PreserveAspectFit
-        visible: !xTurn
+        visible: !core.xTurn
     }
 
 }

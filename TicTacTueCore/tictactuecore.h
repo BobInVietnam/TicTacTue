@@ -25,8 +25,8 @@ class TicTacTueCore : public QObject
 {
     Q_OBJECT;
     Q_PROPERTY(std::string msg READ msg WRITE setMsg NOTIFY msgChanged FINAL);
-    // Q_PROPERTY(bool xTurn READ xTurn NOTIFY turnChanged FINAL);
     Q_PROPERTY(bool isX READ isX WRITE setIsX NOTIFY isXChanged FINAL)
+    Q_PROPERTY(bool xTurn READ xTurn WRITE setXTurn NOTIFY xTurnChanged FINAL)
     Q_PROPERTY(QString xTimerString READ xTimerString WRITE setXTimerString NOTIFY xTimerStringChanged FINAL)
     Q_PROPERTY(QString oTimerString READ oTimerString WRITE setOTimerString NOTIFY oTimerStringChanged FINAL)
     Q_PROPERTY(PlayerInfo * xInfo READ xInfo WRITE setXInfo NOTIFY xInfoChanged FINAL)
@@ -50,9 +50,6 @@ public:
     std::string msg() const;
     void setMsg(const std::string &newMsg);
 
-    // bool xTurn() const;
-    // void setXTurn();
-
     QString xTimerString() const;
     void setXTimerString(const QString &newXTimerString);
 
@@ -73,12 +70,14 @@ public:
     int ping() const;
     void setPing(int newPing);
 
-
     bool isX() const;
     void setIsX(bool newIsX);
 
     int aiDiff() const;
     void setAiDiff(int newAiDiff);
+
+    bool xTurn() const;
+    void setXTurn(bool newXTurn);
 
 public slots:
     void getBoxPressed(int index);
@@ -88,12 +87,11 @@ public slots:
     void getoTimerSignal();
     void startGame();
     void changeBoard();
-    void changeIsX();
 
     void connectToServerSuccess();
     void disconnectFromServerSuccess();
     void receiveServerMessage(const QJsonObject&);
-    void onGameStarted();
+    void onGameStarted(bool);
     void onChatReceived(const QString&);
     void onOpponentLeft();
 signals:
@@ -119,6 +117,8 @@ signals:
     void gameStarted();
     void chatReceived(const QString&);
     void opponentLeft();
+    void xTurnChanged();
+
 private:
     Game * currentGame;
     GameClient * gameClient;

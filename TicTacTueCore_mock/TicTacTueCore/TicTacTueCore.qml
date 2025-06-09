@@ -16,6 +16,10 @@ Item {
     signal usernameSet();
     signal serverConnected();
     signal serverDisconnected();
+    signal roomErrorOccured();
+    signal gameStarted();
+    signal chatReceived(QString msg)
+    signal opponentLeft()
 
     function getBoxPressed(index) {
         xTurn = !xTurn;

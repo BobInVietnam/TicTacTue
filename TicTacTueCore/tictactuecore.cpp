@@ -8,6 +8,7 @@ TicTacTueCore::TicTacTueCore() {
     gameClient = GameClient::getInstance();
     currentGame = nullptr;
     setIsX(true);
+    setXTurn(true);
     QObject::connect(this, &TicTacTueCore::gamemodeChanged, &TicTacTueCore::startGame);
     QObject::connect(gameClient, &GameClient::onconnected, this, &TicTacTueCore::connectToServerSuccess);
     QObject::connect(gameClient, &GameClient::ondisconnected, this, &TicTacTueCore::disconnectFromServerSuccess);
@@ -25,14 +26,18 @@ void TicTacTueCore::initGame()
     case 0:
         delete currentGame;
         currentGame = new AIGame(isX(), aiDiff());
+        setXTurn(true);
         break;
     case 1:
         delete currentGame;
         currentGame = new OfflineGame();
+        setIsX(true);
+        setXTurn(true);
         break;
     case 2:
         delete currentGame;
         currentGame = new OnlineGame();
+        setXTurn(false);
         break;
     default:
         qDebug() << "WTF Gamemode?";
@@ -109,20 +114,27 @@ void TicTacTueCore::sendMessage(const QString & msg)
 void TicTacTueCore::getBoxPressed(int index)
 {
     setMsg("Block number " + std::to_string(index) + " pressed");
-    currentGame->move(index / 3, index % 3);
-        // setXTurn();
+    if (xTurn() == isX()) {
+        currentGame->move(index / 3, index % 3);
+        if (gamemode() == 1) setIsX(!isX());
+    } else {
+        qDebug() << "Not your turn";
+    }
 }
 
 void TicTacTueCore::checkGameState()
 {
     switch (currentGame->gs()) {
     case XWON:
+        setXTurn(!isX());
         emit gameWon("X");
         break;
     case OWON:
+        setXTurn(!isX());
         emit gameWon("O");
         break;
     case DRAW:
+        setXTurn(!isX());
         emit gameWon("NO ONE");
     default:
         break;
@@ -132,6 +144,9 @@ void TicTacTueCore::checkGameState()
 void TicTacTueCore::reset()
 {
     currentGame->reset();
+    setXTurn(true);
+    if (gamemode() == 1) setIsX(true);
+    if (gamemode() == 2) setXTurn(false);
 }
 
 void TicTacTueCore::getxTimerSignal()
@@ -150,7 +165,6 @@ void TicTacTueCore::startGame()
     if (currentGame != nullptr) {
         QObject::connect(currentGame->getXTimer(), &CountdownTimer::currentTimeChanged, this, &TicTacTueCore::getxTimerSignal);
         QObject::connect(currentGame->getOTimer(), &CountdownTimer::currentTimeChanged, this, &TicTacTueCore::getoTimerSignal);
-        QObject::connect(currentGame, &Game::isXChanged, this, &TicTacTueCore::changeIsX);
         QObject::connect(currentGame, &Game::gsChanged, this, &TicTacTueCore::checkGameState);
         QObject::connect(currentGame, &Game::boardChanged, this, &TicTacTueCore::changeBoard);
         QObject::connect(currentGame, &Game::receivedChat, this, &TicTacTueCore::onChatReceived);
@@ -164,12 +178,8 @@ void TicTacTueCore::startGame()
 
 void TicTacTueCore::changeBoard()
 {
+    setXTurn(!xTurn());
     emit boardChanged();
-}
-
-void TicTacTueCore::changeIsX()
-{
-    setIsX(currentGame->isX());
 }
 
 void TicTacTueCore::connectToServerSuccess()
@@ -202,8 +212,9 @@ void TicTacTueCore::receiveServerMessage(const QJsonObject &json)
     }
 }
 
-void TicTacTueCore::onGameStarted()
+void TicTacTueCore::onGameStarted(bool isX)
 {
+    setIsX(isX);
     emit gameStarted();
 }
 
@@ -230,18 +241,6 @@ void TicTacTueCore::setMsg(const std::string &newMsg)
     emit msgChanged();
 }
 
-// bool TicTacTueCore::xTurn() const
-// {
-//     return m_xTurn;
-// }
-
-// void TicTacTueCore::setXTurn()
-// {
-//     if (m_xTurn != currentGame->getXTurn()) {
-//         m_xTurn = currentGame->getXTurn();
-//         emit turnChanged();
-//     }
-// }
 
 QString TicTacTueCore::xTimerString() const
 {
@@ -352,4 +351,17 @@ int TicTacTueCore::aiDiff() const
 void TicTacTueCore::setAiDiff(int newAiDiff)
 {
     m_aiDiff = newAiDiff;
+}
+
+bool TicTacTueCore::xTurn() const
+{
+    return m_xTurn;
+}
+
+void TicTacTueCore::setXTurn(bool newXTurn)
+{
+    if (m_xTurn == newXTurn)
+        return;
+    m_xTurn = newXTurn;
+    emit xTurnChanged();
 }

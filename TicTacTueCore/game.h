@@ -49,7 +49,7 @@ signals:
     void msgReceived(QString);
     void isXChanged();
     void receivedChat(const QString&);
-    void gameStarted();
+    void gameStarted(bool);
     void opponentLeft();
 
 protected:
