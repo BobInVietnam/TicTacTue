@@ -9,24 +9,24 @@ qt6_add_qml_module(TicTacTueContent
     VERSION 1.0
     RESOURCE_PREFIX "/qt/qml"
     QML_FILES
+        "MainScreen.qml"
         "XORect.ui.qml"
-        "App.qml"
-        "PlayerStats.ui.qml"
+        "PlayerTimeScore.qml"
         "GameScreen.qml"
         "GeneralButton.ui.qml"
-        "PlayerTimeScore.qml"
-        "MainScreen.qml"
         "GeneralTextInput.ui.qml"
+        "PlayerStats.ui.qml"
+        "App.qml"
     RESOURCES
-        "images/wifi-problem-svgrepo-com.svg"
         "images/ava1.png"
-        "images/tictactoe-svgrepo-com.svg"
-        "images/robot-svgrepo-com.svg"
-        "images/o.svg"
         "images/wifi-high-svgrepo-com.svg"
         "images/x.svg"
+        "images/robot-svgrepo-com.svg"
+        "images/tictactoe-svgrepo-com.svg"
+        "images/o.svg"
         "images/avatar-default-svgrepo-com.svg"
         "images/ava2.png"
+        "images/wifi-problem-svgrepo-com.svg"
 )
 
 

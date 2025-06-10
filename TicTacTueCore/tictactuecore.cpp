@@ -194,6 +194,13 @@ void TicTacTueCore::disconnectFromServerSuccess()
 
 void TicTacTueCore::receiveServerMessage(const QJsonObject &json)
 {
+    if (json.value("CMD").toString() == "PONG") {
+        qint64 clientReceiveTime = QDateTime::currentMSecsSinceEpoch();
+        qint64 ping = clientReceiveTime - json.value("S_SENT").toInteger();
+        gameClient->notifyPongTimer();
+        setPing(ping);
+        return;
+    }
     if (!json.value("INGAME").toBool()) {
         QString cmd = json.value("CMD").toString("NULL");
         if (cmd == "CR_OK") {

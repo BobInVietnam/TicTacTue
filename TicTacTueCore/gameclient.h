@@ -10,8 +10,10 @@
 
 class GameClient : public QObject
 {
+    const int PING_INTERVAL = 5000;
+    const int PONG_TIMEOUT_MARK = 20000;
+
     Q_OBJECT
-    Q_PROPERTY(int ping READ ping WRITE setping NOTIFY pingChanged FINAL)
     Q_PROPERTY(QString cId READ cId WRITE setCId NOTIFY cIdChanged FINAL)
     Q_PROPERTY(QString rId READ rId WRITE setRId NOTIFY rIdChanged FINAL)
     QML_ELEMENT
@@ -20,11 +22,9 @@ public:
     void connectToServer();
     void sendMessage(QByteArray);
     void disconnect();
-    void pingServer();
+    void notifyPongTimer();
 
     const QString IP_ADD = "localhost";
-    int ping();
-    void setping(int newPing);
 
     QString cId() const;
     void setCId(const QString &newCId);
@@ -38,21 +38,21 @@ private slots:
     void stateChanged(QAbstractSocket::SocketState);
     void errorOccurred(QAbstractSocket::SocketError);
     void receiveMessage();
+    void pingServer();
 signals:
     void onconnected();
     void ondisconnected();
     void onstateChanged(QAbstractSocket::SocketState);
     void onerrorOccurred(QAbstractSocket::SocketError);
     void messageReceived(const QJsonObject&);
-    void pingChanged();
     void cIdChanged();
-
     void rIdChanged();
 
 private:
     static GameClient * instance;
     QTcpSocket socket;
-    int m_ping;
+    QTimer pingTimer;
+    QTimer pongTimeoutTimer;
     bool isOn;
     bool connected;
     QByteArray socketBuffer = QByteArray();

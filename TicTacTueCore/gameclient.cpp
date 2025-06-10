@@ -12,6 +12,8 @@ GameClient::GameClient()
     connect(&socket, &QAbstractSocket::stateChanged, this, &GameClient::stateChanged);
     connect(&socket, &QAbstractSocket::errorOccurred, this, &GameClient::errorOccurred);
     connect(&socket, &QTcpSocket::readyRead, this, &GameClient::receiveMessage);
+    connect(&pingTimer, &QTimer::timeout, this, &GameClient::pingServer);
+    connect(&pongTimeoutTimer, &QTimer::timeout, this, &GameClient::disconnected);
 }
 
 GameClient *GameClient::getInstance()
@@ -54,29 +56,34 @@ void GameClient::sendMessage(QByteArray jsonData)
 void GameClient::disconnect()
 {
     socket.disconnectFromHost();
+    qDebug() << "GM: Disconnected";
+    pingTimer.stop();
+    pongTimeoutTimer.stop();
 }
 
 
 void GameClient::pingServer() {
-    // something something ping ping
+    qint64 clientSendTime = QDateTime::currentMSecsSinceEpoch();
+    QJsonObject json;
+    json["CID"] = cId();
+    json["CMD"] = "PING";
+    json["C_SENT"] = clientSendTime;
+    sendMessage(QJsonDocument(json).toJson(QJsonDocument::Compact));
 }
 
-int GameClient::ping() {
-    return m_ping;
-}
-
-void GameClient::setping(int newPing)
+void GameClient::notifyPongTimer()
 {
-    if (m_ping == newPing)
-        return;
-    m_ping = newPing;
-    emit pingChanged();
+    pongTimeoutTimer.setInterval(PONG_TIMEOUT_MARK);
 }
 
 void GameClient::connectedToServer()
 {
     qDebug() << "GC: connected to server";
     connected = true;
+    pingTimer.setInterval(PING_INTERVAL);
+    pongTimeoutTimer.setInterval(PONG_TIMEOUT_MARK);
+    pingTimer.start();
+    pongTimeoutTimer.start();
     emit onconnected();
 }
 

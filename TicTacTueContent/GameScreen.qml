@@ -94,10 +94,19 @@ Rectangle {
                        }
         onChatReceived: (msg) => {
                             myListModel.append(myListModel.createListElement(msg))
+                            scrollView.ScrollBar.vertical.position = 1.0 - scrollView.ScrollBar.vertical.size;
+                            console.log("List height" + scrollView.availableHeight)
+                            console.log("List content height" + scrollView.contentHeight)
+                            console.log("List set height" + scrollView.implicitHeight)
+                            console.log("msg height" + repeater.itemAt(repeater.count - 1).height)
+                            console.log("msg width" + repeater.itemAt(repeater.count - 1).width)
                         }
         onOpponentLeft: () => {
                             waitingForOpponent = true;
                         }
+        onPingChanged: () => {
+                        pingText.text = "Ping: " + core.ping
+                       }
     }
 
     signal roomCreated();
@@ -286,8 +295,11 @@ Rectangle {
                     selectionColor: "#beffffff"
                     selectedTextColor: "#1e1e1e"
                     onAccepted: () => {
-                                core.sendMessage(textInput.text);
+                                if (textInput.text !== "") {
+                                    core.sendMessage(textInput.text);
+                                    textInput.clear()
                                 }
+                            }
                 }
             }
 
@@ -303,45 +315,47 @@ Rectangle {
                 anchors.bottom: parent.bottom
                 anchors.bottomMargin: 28
 
-
-                ScrollView {
-                    id: rectangle1
-                    width: 200
-                    height: 160
+                ColumnLayout {
                     anchors.fill: parent
                     anchors.leftMargin: 8
                     anchors.rightMargin: 8
                     anchors.topMargin: 8
                     anchors.bottomMargin: 8
-                    clip: true
 
-                    Column {
-                        id: contentColumn
-                        anchors.fill: parent
-                        spacing: 4
+                    ScrollView {
+                        id: scrollView
+                        Layout.fillHeight: true
+                        Layout.fillWidth: true
 
-                        Repeater {
-                            id: repeater
-                            model:  ListModel {
-                                id: myListModel
-                                function createListElement(msg) {
-                                    return {"msg": msg}
+                        clip: true
+
+                        Column {
+                            id: contentColumn
+                            width: parent.width
+                            spacing: 4
+
+                            Repeater {
+                                id: repeater
+                                model:  ListModel {
+                                    id: myListModel
+                                    function createListElement(msg) {
+                                        return {"msg": msg}
+                                    }
                                 }
-                            }
 
-                            delegate: Rectangle {
-                                id: chatItem
-                                width: parent.width
-                                height: chatMsg.height
-                                color: "#00ffffff"
-                                Text {
-                                    id: chatMsg
-                                    color: "#ffffff"
-                                    text: msg
+                                delegate: Rectangle {
+                                    id: chatItem
                                     width: parent.width
-                                    wrapMode: Text.WordWrap
-                                    fontSizeMode: Text.VerticalFit
-                                    font.pointSize: 10
+                                    implicitHeight: chatMsg.height
+                                    color: "#00ffffff"
+                                    Text {
+                                        id: chatMsg
+                                        color: "#ffffff"
+                                        text: msg
+                                        width: 200
+                                        wrapMode: Text.WordWrap
+                                        font.pointSize: 10
+                                    }
                                 }
                             }
                         }
@@ -497,6 +511,9 @@ Rectangle {
         if (gamemode == 2) core.leaveRoom();
         gamemode = -1;
         myListModel.clear()
+        scrollView.width = chatoutput.width
+        contentColumn.width = scrollView.width
+        scrollView.ScrollBar.vertical.position = 0;
     }
 
     PlayerTimeScore {
@@ -564,18 +581,8 @@ Rectangle {
         anchors.leftMargin: 16
         anchors.bottomMargin: 8
 
-        Image {
-            id: wifiProblemSvgrepoCom
-            x: 8
-            y: 6
-            source: "images/wifi-problem-svgrepo-com.svg"
-            sourceSize.height: 36
-            sourceSize.width: 36
-            fillMode: Image.PreserveAspectFit
-        }
-
         Text {
-            id: ping
+            id: pingText
             x: 6
             y: 15
             color: "#ffffff"
