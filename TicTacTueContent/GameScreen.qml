@@ -36,6 +36,14 @@ Rectangle {
     }
 
     onGamemodeChanged: {
+        if (gamemode !== 2) {
+            playerStats.playerName = "Player X"
+            opponentStats.playerName = "Player O"
+            playerStats.playerWin = 0
+            opponentStats.playerLose = 0
+            playerStats.playerLose = 0
+            opponentStats.playerWin = 0
+        }
         if (gamemode === 0) {
             core.isX = !aiIsX
         }
@@ -60,7 +68,11 @@ Rectangle {
                        winStatus.visible = true;
                        if (side === "X") {
                            xWin++;
+                           playerStats.playerWin += 1
+                           opponentStats.playerLose += 1
                        } else if (side === "O") {
+                           playerStats.playerLose += 1
+                           opponentStats.playerWin += 1
                            oWin++;
                        }
                     }
@@ -92,14 +104,18 @@ Rectangle {
         onGameStarted: () => {
                         waitingForOpponent = false;
                        }
+        onStatsChanged: (xName, xWin, xLose, oName, oWin, oLose) => {
+                            playerStats.playerName = xName
+                            opponentStats.playerName = oName
+                            playerStats.playerWin = xWin
+                            opponentStats.playerLose = oLose
+                            playerStats.playerLose = xLose
+                            opponentStats.playerWin = oWin
+                        }
+
         onChatReceived: (msg) => {
                             myListModel.append(myListModel.createListElement(msg))
                             scrollView.ScrollBar.vertical.position = 1.0 - scrollView.ScrollBar.vertical.size;
-                            console.log("List height" + scrollView.availableHeight)
-                            console.log("List content height" + scrollView.contentHeight)
-                            console.log("List set height" + scrollView.implicitHeight)
-                            console.log("msg height" + repeater.itemAt(repeater.count - 1).height)
-                            console.log("msg width" + repeater.itemAt(repeater.count - 1).width)
                         }
         onOpponentLeft: () => {
                             waitingForOpponent = true;
@@ -188,6 +204,7 @@ Rectangle {
                 anchors.bottomMargin: 0
                 width: 80
                 avatar.source: imageUrlPlayer
+                playerName: "Player X"
             }
 
             PlayerStats {
@@ -201,6 +218,7 @@ Rectangle {
                 anchors.topMargin: 0
                 anchors.bottomMargin: 0
                 avatar.source: imageUrlOpponent
+                playerName: "Player O"
             }
 
             Text {

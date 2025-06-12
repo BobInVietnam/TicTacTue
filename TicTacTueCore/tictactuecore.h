@@ -115,6 +115,7 @@ signals:
     void roomErrorOccured(const QString&);
     void roomMsgReceived(const QString&);
     void gameStarted();
+    void statsChanged(const QString&, int, int, const QString&, int, int);
     void chatReceived(const QString&);
     void opponentLeft();
     void xTurnChanged();

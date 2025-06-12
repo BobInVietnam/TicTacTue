@@ -211,6 +211,14 @@ void TicTacTueCore::receiveServerMessage(const QJsonObject &json)
             emit roomJoined();
         } else if (cmd == "US_OK") {
             emit usernameSet();
+        } else if (cmd == "ASN") {
+            QString xName = json.value("X_NAME").toString();
+            int xWin = json.value("X_WIN").toInt();
+            int xLose = json.value("X_LOSE").toInt();
+            QString oName = json.value("O_NAME").toString();
+            int oWin = json.value("O_WIN").toInt();
+            int oLose = json.value("O_LOSE").toInt();
+            emit statsChanged(xName, xWin, xLose, oName, oWin, oLose);
         } else if (cmd == "ERR") {
             emit roomErrorOccured(json.value("MSG").toString("Error"));
         } else {
